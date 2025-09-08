@@ -17,7 +17,7 @@
 ## Cấu trúc project
 
 ```
-src/main/java/com/example/miniecommerce/
+src/main/java/org/example/miniecommerce/
  ├─ controller/    (REST API controllers)
  ├─ service/       (Business logic)
  ├─ repository/    (JPA repositories)
@@ -70,7 +70,7 @@ Schema + dữ liệu mẫu được định nghĩa trong:
 ```
 src/main/resources/db/migration/V1__init.sql
 ```
-
+(Nếu không chạy được V1_.sql ngay ở thư mục migration thì copy file V1_.sql trong thư mục migration vào src/main/resources/db/migration/ rồi start project lần đầu thì sẽ khởi tạo các bảng và dữ liệu mẫu, sau khi đã migrate tables thì xóa file này ở src/main/resources/db/migration/ đi)
 ### 4. Mở project bằng IntelliJ IDEA
 
 - File → Open → chọn thư mục project.
