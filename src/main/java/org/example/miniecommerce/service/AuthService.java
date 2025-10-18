@@ -5,7 +5,7 @@ import org.example.miniecommerce.dto.auth.LoginRequest;
 import org.example.miniecommerce.dto.user.CreateUserRequest;
 import org.example.miniecommerce.dto.user.UserResponse;
 import org.example.miniecommerce.entity.User;
-import org.example.miniecommerce.mapper.UserMapper;
+import org.example.miniecommerce.factory.UserFactory;
 import org.example.miniecommerce.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthService {
   private final UserRepository userRepository;
-  private final UserMapper userMapper;
+  private final UserFactory userFactory;
 
 
   //register
@@ -26,10 +26,10 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already exists");
         }
 
-        User user = userMapper.toUser(request);
+        User user = userFactory.toUser(request);
         userRepository.save(user);
 
-        UserResponse userResponse = userMapper.toUserResponse(user);
+        UserResponse userResponse = userFactory.toUserResponse(user);
 
         return AuthResponse.builder()
                 .message("Register successful")
@@ -46,7 +46,7 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid password");
         }
 
-        UserResponse userResponse = userMapper.toUserResponse(user);
+        UserResponse userResponse = userFactory.toUserResponse(user);
 
         return AuthResponse.builder()
                 .message("Login successful")

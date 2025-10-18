@@ -16,7 +16,7 @@ import org.example.miniecommerce.entity.User.Role;
 @AllArgsConstructor
 @Builder
 public class UserResponse {
-  private String id;
+  private Long id;
   private String name;
   private String email;
   private Role role ;
