@@ -5,7 +5,7 @@ import org.example.miniecommerce.dto.category.CreateCategoryRequest;
 import org.example.miniecommerce.entity.Category;
 
 public class CategoryFactory {
-    public CategoryResponse toResponse(Category category) {
+    public static CategoryResponse toResponse(Category category) {
         return new CategoryResponse(
                 category.getId(),
                 category.getName(),
