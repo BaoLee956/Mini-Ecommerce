@@ -1,7 +1,7 @@
 package org.example.miniecommerce.dto.category;
 
 public record CategoryResponse(
-        String id,
+        Long id,
         String name,
         String description) {
 }
