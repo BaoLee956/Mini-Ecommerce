@@ -15,22 +15,19 @@ import java.util.List;
 @Table(name = "orders")
 @SQLDelete(sql = "UPDATE orders SET deleted_at = NOW() WHERE id=?")
 @SQLRestriction("deleted_at IS NULL")
-
-
 public class Order extends BaseEntity {
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal totalAmount;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Status status = Status.PENDING;
+    private OrderStatus status = OrderStatus.PENDING;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items;
 
-    public enum Status {PENDING, PAID, SHIPPED, DELIVERED, CANCELLED}
 }

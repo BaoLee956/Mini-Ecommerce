@@ -62,7 +62,7 @@ CREATE TABLE order_items
     order_id   BIGINT,
     product_id BIGINT,
     quantity   INT            NOT NULL,
-    unit_price DECIMAL(12, 2) NOT NULL,
+    price DECIMAL(12, 2) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME DEFAULT NULL,
@@ -131,7 +131,7 @@ VALUES (2, 200000, 'PENDING'),
        (3, 130000, 'PAID');
 
 -- ORDER ITEMS
-INSERT INTO order_items (order_id, product_id, quantity, unit_price)
+INSERT INTO order_items (order_id, product_id, quantity, price)
 VALUES (1, 1, 2, 100000),
        (2, 3, 2, 50000),
        (2, 5, 1, 30000);
