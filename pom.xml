@@ -81,6 +81,9 @@
             <artifactId>mapstruct</artifactId>
             <version>1.5.5.Final</version>
         </dependency>
+        
+    
+
 
         <dependency>
             <groupId>org.springdoc</groupId>
