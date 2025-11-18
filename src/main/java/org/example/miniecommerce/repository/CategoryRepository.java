@@ -13,6 +13,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -24,19 +25,32 @@ public class CategoryRepository {
     private final NamedParameterJdbcTemplate jdbc;
 
     public Page<Category> findAll(Pageable pageable) {
-        String sql = "SELECT * FROM categories ORDER BY id DESC LIMIT :limit OFFSET :offset";
+        String sql = """
+                SELECT * FROM categories
+                WHERE deleted_at IS NULL
+                ORDER BY id DESC
+                LIMIT :limit OFFSET :offset
+                """;
+
         Map<String, Object> params = Map.of(
                 "limit", pageable.getPageSize(),
                 "offset", pageable.getPageNumber() * pageable.getPageSize());
 
         List<Category> content = jdbc.query(sql, params, new BeanPropertyRowMapper<>(Category.class));
-        long total = jdbc.getJdbcTemplate().queryForObject("SELECT COUNT(*) FROM categories", Long.class);
+        long total = countActive();
 
         return new PageImpl<>(content, pageable, total);
     }
 
     public Page<Category> findByNameContainingIgnoreCase(String keyword, Pageable pageable) {
-        String sql = "SELECT * FROM categories WHERE LOWER(name) LIKE :keyword ORDER BY id DESC LIMIT :limit OFFSET :offset";
+        String sql = """
+                SELECT * FROM categories
+                WHERE LOWER(name) LIKE :keyword
+                  AND deleted_at IS NULL
+                ORDER BY id DESC
+                LIMIT :limit OFFSET :offset
+                """;
+
         String likeKeyword = "%" + keyword.toLowerCase() + "%";
         Map<String, Object> params = Map.of(
                 "keyword", likeKeyword,
@@ -44,14 +58,13 @@ public class CategoryRepository {
                 "offset", pageable.getPageNumber() * pageable.getPageSize());
 
         List<Category> content = jdbc.query(sql, params, new BeanPropertyRowMapper<>(Category.class));
-        long total = jdbc.queryForObject("SELECT COUNT(*) FROM categories WHERE LOWER(name) LIKE :keyword",
-                Map.of("keyword", likeKeyword), Long.class);
+        long total = countActiveByKeyword(likeKeyword);
 
         return new PageImpl<>(content, pageable, total);
     }
 
     public Optional<Category> findById(Long id) {
-        String sql = "SELECT * FROM categories WHERE id = :id";
+        String sql = "SELECT * FROM categories WHERE id = :id AND deleted_at IS NULL";
         try {
             Category category = jdbc.queryForObject(sql, Map.of("id", id), new BeanPropertyRowMapper<>(Category.class));
             return Optional.of(category);
@@ -61,30 +74,60 @@ public class CategoryRepository {
     }
 
     public Category insert(Category category) {
-        String sql = "INSERT INTO categories (name, description) VALUES (:name, :description)";
+        String sql = """
+                INSERT INTO categories (name, description, created_at, updated_at)
+                VALUES (:name, :description, :now, :now)
+                """;
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
+        LocalDateTime now = LocalDateTime.now();
+
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("name", category.getName())
-                .addValue("description", category.getDescription());
+                .addValue("description", category.getDescription())
+                .addValue("now", now);
 
         jdbc.update(sql, params, keyHolder);
-
         category.setId(keyHolder.getKey().longValue());
         return category;
     }
 
     public Category update(Category category) {
-        String sql = "UPDATE categories SET name = :name, description = :description WHERE id = :id";
+        String sql = """
+                UPDATE categories
+                SET name = :name,
+                    description = :description,
+                    updated_at = :now
+                WHERE id = :id
+                """;
 
-        jdbc.update(sql, Map.of(
-                "name", category.getName(),
-                "description", category.getDescription(),
-                "id", category.getId()));
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("name", category.getName())
+                .addValue("description", category.getDescription())
+                .addValue("id", category.getId())
+                .addValue("now", LocalDateTime.now());
+
+        jdbc.update(sql, params);
         return category;
     }
 
-    public void deleteById(Long id) {
-        jdbc.update("DELETE FROM categories WHERE id = :id", Map.of("id", id));
+    public void delete(Long id) {
+        String sql = "UPDATE categories SET deleted_at = :now WHERE id = :id AND deleted_at IS NULL";
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("id", id)
+                .addValue("now", LocalDateTime.now());
+
+        jdbc.update(sql, params);
+    }
+
+    private long countActive() {
+        String sql = "SELECT COUNT(*) FROM categories WHERE deleted_at IS NULL";
+        return jdbc.getJdbcTemplate().queryForObject(sql, Long.class);
+    }
+
+    private long countActiveByKeyword(String keyword) {
+        String sql = "SELECT COUNT(*) FROM categories WHERE LOWER(name) LIKE :keyword AND deleted_at IS NULL";
+        return jdbc.queryForObject(sql, Map.of("keyword", keyword), Long.class);
     }
 }
