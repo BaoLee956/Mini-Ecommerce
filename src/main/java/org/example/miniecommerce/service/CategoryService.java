@@ -10,7 +10,9 @@ import org.example.miniecommerce.repository.CategoryRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.NoSuchElementException;
 
@@ -54,8 +56,9 @@ public class CategoryService {
     }
 
     public void delete(Long id) {
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Category not found with id: " + id));
+        if (categoryRepository.findById(id).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found with id: " + id);
+        }
         categoryRepository.delete(id);
     }
 }
