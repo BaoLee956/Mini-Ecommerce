@@ -54,6 +54,8 @@ public class CategoryService {
     }
 
     public void delete(Long id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Category not found with id: " + id));
         categoryRepository.delete(id);
     }
 }
