@@ -94,7 +94,7 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public void deleteById(Long id) {
         LocalDateTime now = LocalDateTime.now();
-        String sql = "UPDATE users SET deleted_at = ? where id = ?";
+        String sql = "DELETE FROM users where id = ?";
         jdbcTemplate.update(sql, now, id);
     }
 

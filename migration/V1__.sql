@@ -10,11 +10,47 @@ CREATE TABLE users
     name       VARCHAR(255)              NOT NULL,
     email      VARCHAR(255)              NOT NULL UNIQUE,
     password   VARCHAR(255)              NOT NULL,
-    role       ENUM ('CUSTOMER','ADMIN') NOT NULL DEFAULT 'CUSTOMER',
     created_at DATETIME                           DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME                           DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME                           DEFAULT NULL
 );
+
+-- ROLES
+CREATE TABLE roles (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    description VARCHAR(255),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+
+-- PERMISSION
+CREATE TABLE permissions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    description VARCHAR(255),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+
+-- USER ROLES
+CREATE TABLE user_roles (
+    user_id BIGINT NOT NULL,
+    role_id BIGINT NOT NULL,
+    PRIMARY KEY (user_id, role_id),
+    CONSTRAINT fk_ur_user FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT fk_ur_role FOREIGN KEY (role_id) REFERENCES roles(id)
+);
+
+-- ROLE PERMISSION
+CREATE TABLE role_permissions (
+    role_id BIGINT NOT NULL,
+    permission_id BIGINT NOT NULL,
+    PRIMARY KEY (role_id, permission_id),
+    CONSTRAINT fk_rp_role FOREIGN KEY (role_id) REFERENCES roles(id),
+    CONSTRAINT fk_rp_permission FOREIGN KEY (permission_id) REFERENCES permissions(id)
+);
+
 
 -- CATEGORIES
 CREATE TABLE categories
@@ -106,10 +142,36 @@ CREATE TABLE shippings
 -- ============================
 
 -- USERS
-INSERT INTO users (name, email, password, role)
-VALUES ('Admin User', 'admin@example.com', 'admin123', 'ADMIN'),
-       ('John Doe', 'john@example.com', 'password123', 'CUSTOMER'),
-       ('Jane Smith', 'jane@example.com', 'password456', 'CUSTOMER');
+INSERT INTO users (name, email, password)
+VALUES ('Admin User', 'admin@example.com', 'admin123'),
+       ('John Doe', 'john@example.com', 'password123'),
+       ('Jane Smith', 'jane@example.com', 'password456');
+
+-- ROLES
+INSERT INTO roles (name, description)
+VALUES ('ADMIN', 'Full admin access'),
+       ('CUSTOMER', 'Customer with limited access'),
+       ('STAFF', 'Employee who manages orders');
+
+-- PERMISSION
+INSERT INTO permissions (name, description)
+VALUES
+    ('USER_VIEW', 'View users'),
+    ('USER_CREATE', 'Create users'),
+    ('USER_DELETE', 'Delete users'),
+    ('PRODUCT_VIEW', 'View product list'),
+    ('PRODUCT_CREATE', 'Create product'),
+    ('ORDER_MANAGE', 'Manage customer orders');
+
+-- USER ROLES
+INSERT INTO user_roles (user_id, role_id)
+VALUES (1, 1), (2, 2), (3, 2);
+
+-- ROLE PERMISSIONS
+INSERT INTO role_permissions (role_id, permission_id)
+VALUES (1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6),
+      (2, 4),
+      (3, 4), (3, 5), (3, 6);
 
 -- CATEGORIES
 INSERT INTO categories (name, description)
