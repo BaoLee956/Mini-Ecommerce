@@ -7,6 +7,7 @@ import org.example.miniecommerce.dto.user.UserResponse;
 import org.example.miniecommerce.entity.User;
 import org.example.miniecommerce.factory.UserFactory;
 import org.example.miniecommerce.repository.UserRepository;
+import org.example.miniecommerce.repository.UserRoleRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -18,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 public class AuthService {
   private final UserRepository userRepository;
   private final UserFactory userFactory;
-
+  private final UserRoleRepository userRoleRepository;
 
   //register
   public AuthResponse register(CreateUserRequest request) {
@@ -28,6 +29,9 @@ public class AuthService {
 
         User user = userFactory.toUser(request);
         userRepository.save(user);
+        
+        //  gán role cho user
+        userRoleRepository.assignRoleToUser(request.getEmail(), request.getRoleName());
 
         UserResponse userResponse = userFactory.toUserResponse(user);
 

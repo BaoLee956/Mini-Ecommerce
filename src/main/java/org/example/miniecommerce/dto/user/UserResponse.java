@@ -3,13 +3,11 @@ package org.example.miniecommerce.dto.user;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+
 
 import java.time.LocalDateTime;
 
-import org.example.miniecommerce.entity.User.Role;
 
 @Data
 @NoArgsConstructor
@@ -19,7 +17,7 @@ public class UserResponse {
   private Long id;
   private String name;
   private String email;
-  private Role role ;
+  private String roleName;
   private LocalDateTime createdAt;
   private LocalDateTime updateAt;
 }

@@ -1,6 +1,7 @@
 package org.example.miniecommerce.service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.example.miniecommerce.dto.user.UpdateUserRequest;
 import org.example.miniecommerce.dto.user.UserResponse;
@@ -35,8 +36,12 @@ public class UserService {
   }
 
 
-  public List <User> getAllUser (){
-    return userRepository.findAll();
+  public List <UserResponse> getAllUser (){
+    List<User> users = userRepository.findAll();
+
+    return users.stream()
+                .map(userFactory::toUserResponse)
+                .collect(Collectors.toList());
   }
 
   public UserResponse getUserId(String userId){
