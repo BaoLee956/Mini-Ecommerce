@@ -24,14 +24,25 @@ public class ShippingService {
     public Shipping create(CreateShipmentRequest req) {
         Order order = orderLookup.findByIdOrThrow(req.orderId());
         Shipping s = ShippingFactory.fromCreateRequest(req, order);
-        return repo.save(s);
+
+        repo.save(s);
+
+        // Sau khi save, query lại để lấy Shipping mới nhất
+        return repo.findByOrderId(order.getId())
+                   .stream()
+                   .reduce((first, second) -> second)
+                   .orElse(s);
     }
 
     @Transactional
-    public Shipping update(Long id, UpdateShipmentRequest req) {
-        Shipping s = repo.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Shipment not found"));
-        ShippingFactory.applyUpdate(s, req.status(), req.address(), req.city(), req.postalCode(), req.country());
-        return repo.save(s);
+    public Shipping update(UpdateShipmentRequest req) {
+        Shipping s = repo.findById(req.shippingId())
+                         .orElseThrow(() -> new IllegalArgumentException("Shipping not found"));
+
+        ShippingFactory.applyUpdate(s, req);
+
+        repo.update(s);
+
+        return s;
     }
 }
