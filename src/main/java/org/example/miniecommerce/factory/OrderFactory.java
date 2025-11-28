@@ -1,4 +1,4 @@
-package org.example.miniecommerce.builder;
+package org.example.miniecommerce.factory;
 
 import lombok.RequiredArgsConstructor;
 import org.example.miniecommerce.dto.order.CreateOrderItemDto;
@@ -15,7 +15,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class OrderBuilder {
+public class OrderFactory {
 
     private final OrderItemRepository orderItemRepository;
     private final TotalCalculator totalCalculator;

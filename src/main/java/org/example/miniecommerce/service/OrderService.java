@@ -1,7 +1,7 @@
 package org.example.miniecommerce.service;
 
 import lombok.RequiredArgsConstructor;
-import org.example.miniecommerce.builder.OrderBuilder;
+import org.example.miniecommerce.factory.OrderFactory;
 import org.example.miniecommerce.dto.order.*;
 import org.example.miniecommerce.entity.Order;
 import org.example.miniecommerce.entity.OrderStatus;
@@ -19,13 +19,13 @@ import java.util.List;
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final OrderBuilder orderBuilder;
+    private final OrderFactory orderFactory;
     private final TotalCalculator totalCalculator;
     private final ApplicationEventPublisher eventPublisher;
 
     // POST /api/orders
     public OrderResponse createOrder(Long userId, CreateOrderRequest request) {
-        Order order = orderBuilder.createOrder(userId, request.items());
+        Order order = orderFactory.createOrder(userId, request.items());
         order = orderRepository.save(order);
         return mapToResponse(order);
     }
@@ -89,7 +89,7 @@ public class OrderService {
             throw new IllegalStateException("Only pending orders can be deleted");
         }
 
-        orderRepository.delete(order);
+        orderRepository.deleteById(id);
         return new DeleteResponse("Order deleted");
     }
 
