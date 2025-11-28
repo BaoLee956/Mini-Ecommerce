@@ -20,16 +20,25 @@ public class ShippingController {
         this.svc = svc;
     }
 
+    // Tạo shipment mới
     @PostMapping
     public ResponseEntity<ShipmentResponse> create(@Valid @RequestBody CreateShipmentRequest req) {
         Shipping s = svc.create(req);
         return ResponseEntity.status(201).body(ShippingMapper.toResponse(s));
     }
 
+    // Cập nhật shipment theo id
     @PatchMapping("/{id}")
     public ResponseEntity<ShipmentResponse> update(@PathVariable Long id,
-                                                   @RequestBody UpdateShipmentRequest req) {
+                                                   @Valid @RequestBody UpdateShipmentRequest req) {
         Shipping s = svc.update(id, req);
+        return ResponseEntity.ok(ShippingMapper.toResponse(s));
+    }
+
+    // Lấy shipment theo id
+    @GetMapping("/{id}")
+    public ResponseEntity<ShipmentResponse> getById(@PathVariable Long id) {
+        Shipping s = svc.getById(id);
         return ResponseEntity.ok(ShippingMapper.toResponse(s));
     }
 }

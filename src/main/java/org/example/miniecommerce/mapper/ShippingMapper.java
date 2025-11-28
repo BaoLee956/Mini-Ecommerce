@@ -4,17 +4,27 @@ import org.example.miniecommerce.dto.shipping.ShipmentResponse;
 import org.example.miniecommerce.entity.Shipping;
 
 public class ShippingMapper {
+
     public static ShipmentResponse toResponse(Shipping s) {
+        if (s == null) return null;
+
         return new ShipmentResponse(
-                s.getId(),
-                s.getOrder() != null ? s.getOrder().getId() : null,
-                s.getAddress(),
-                s.getCity(),
-                s.getPostalCode(),
-                s.getCountry(),
-                s.getStatus().name().toLowerCase(),
-                s.getCreatedAt(),
-                s.getUpdatedAt()
+            s.getId(),
+            s.getOrderId(),
+            s.getDeliveryAddress(),
+            s.getCity(),
+            s.getPostalCode(),
+            s.getCountry(),
+            s.getCarrierName(),
+            s.getTrackingNumber(),
+            s.getShippingCost(),
+            s.getStatus().name(),
+            s.getShippedAt(),
+            s.getExpectedDeliveryDate(),
+            s.getDeliveredAt(),
+            s.getNotes(),
+            s.getCreatedAt(),
+            s.getUpdatedAt()
         );
     }
 }

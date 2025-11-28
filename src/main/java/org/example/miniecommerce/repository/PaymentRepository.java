@@ -17,35 +17,42 @@ public class PaymentRepository {
     }
 
     public void save(Payment payment) {
-        String sql = "INSERT INTO payments (order_id, amount, method, status, created_at, updated_at) " +
-                     "VALUES (?, ?, ?, ?, NOW(), NOW())";
+        String sql = "INSERT INTO payments (order_id, amount, payment_method, status, failure_reason, transaction_id, paid_at, created_at, updated_at) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
         jdbcTemplate.update(sql,
             payment.getOrderId(),
             payment.getAmount(),
-            payment.getMethod(),
-            payment.getStatus().name()
+            payment.getPaymentMethod(),
+            payment.getStatus().name(),
+            payment.getFailureReason(),
+            payment.getTransactionId(),
+            payment.getPaidAt()
         );
     }
 
     public void update(Payment payment) {
-        String sql = "UPDATE payments SET amount = ?, method = ?, status = ?, paid_at = ?, updated_at = NOW() WHERE id = ?";
+        String sql = "UPDATE payments SET amount = ?, payment_method = ?, status = ?, failure_reason = ?, transaction_id = ?, paid_at = ?, updated_at = NOW() WHERE id = ?";
         jdbcTemplate.update(sql,
             payment.getAmount(),
-            payment.getMethod(),
+            payment.getPaymentMethod(),
             payment.getStatus().name(),
+            payment.getFailureReason(),
+            payment.getTransactionId(),
             payment.getPaidAt(),
             payment.getId()
         );
     }
 
     public Optional<Payment> findById(Long id) {
-        String sql = "SELECT id, order_id, amount, method, status, paid_at FROM payments WHERE id = ?";
+        String sql = "SELECT id, order_id, amount, payment_method, status, failure_reason, transaction_id, paid_at FROM payments WHERE id = ?";
         List<Payment> results = jdbcTemplate.query(sql, ps -> ps.setLong(1, id), (rs, rowNum) -> {
             Payment p = new Payment();
             p.setId(rs.getLong("id"));
             p.setAmount(rs.getBigDecimal("amount"));
-            p.setMethod(rs.getString("method"));
+            p.setPaymentMethod(rs.getString("payment_method"));
             p.setStatus(Payment.Status.valueOf(rs.getString("status")));
+            p.setFailureReason(rs.getString("failure_reason"));
+            p.setTransactionId(rs.getString("transaction_id"));
             if (rs.getTimestamp("paid_at") != null) {
                 p.setPaidAt(rs.getTimestamp("paid_at").toLocalDateTime());
             }
@@ -55,13 +62,15 @@ public class PaymentRepository {
     }
 
     public List<Payment> findByOrderId(Long orderId) {
-        String sql = "SELECT id, order_id, amount, method, status, paid_at FROM payments WHERE order_id = ?";
+        String sql = "SELECT id, order_id, amount, payment_method, status, failure_reason, transaction_id, paid_at FROM payments WHERE order_id = ?";
         return jdbcTemplate.query(sql, ps -> ps.setLong(1, orderId), (rs, rowNum) -> {
             Payment p = new Payment();
             p.setId(rs.getLong("id"));
             p.setAmount(rs.getBigDecimal("amount"));
-            p.setMethod(rs.getString("method"));
+            p.setPaymentMethod(rs.getString("payment_method"));
             p.setStatus(Payment.Status.valueOf(rs.getString("status")));
+            p.setFailureReason(rs.getString("failure_reason"));
+            p.setTransactionId(rs.getString("transaction_id"));
             if (rs.getTimestamp("paid_at") != null) {
                 p.setPaidAt(rs.getTimestamp("paid_at").toLocalDateTime());
             }
