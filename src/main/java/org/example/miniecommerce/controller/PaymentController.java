@@ -33,11 +33,4 @@ public class PaymentController {
         Payment p = svc.confirm(req);
         return ResponseEntity.ok(PaymentMapper.toResponse(p));
     }
-
-    // Lấy payment theo id
-    @GetMapping("/{id}")
-    public ResponseEntity<PaymentResponse> getById(@PathVariable Long id) {
-        Payment p = svc.getById(id);
-        return ResponseEntity.ok(PaymentMapper.toResponse(p));
-    }
 }

@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
 @SQLDelete(sql = "UPDATE payments SET deleted_at = NOW() WHERE id=?")
 @SQLRestriction("deleted_at IS NULL")
 public class Payment extends BaseEntity {
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
     private Order order;
@@ -24,28 +23,21 @@ public class Payment extends BaseEntity {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
 
-    @Column(name = "payment_method", nullable = false, length = 100)
-    private String paymentMethod;
+    @Column(nullable = false)
+    private String method;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status = Status.PENDING;
 
-    @Column(name = "failure_reason")
-    private String failureReason;
-
-    @Column(name = "transaction_id")
-    private String transactionId;
-
-    @Column(name = "paid_at")
+    @Column
     private LocalDateTime paidAt;
 
-    public enum Status {
-        PENDING, SUCCESS, FAILED
-    }
-
+    public enum Status {PENDING, PAID, FAILED}
+    
     @Transient
     public Long getOrderId() {
         return (order != null) ? order.getId() : null;
     }
+
 }

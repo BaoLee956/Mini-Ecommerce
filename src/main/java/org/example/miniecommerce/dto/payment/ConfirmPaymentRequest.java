@@ -4,6 +4,5 @@ import jakarta.validation.constraints.NotNull;
 
 public record ConfirmPaymentRequest(
     @NotNull Long paymentId,
-    @NotNull Boolean success,
-    String failureReason
+    @NotNull Boolean success
 ) {}
