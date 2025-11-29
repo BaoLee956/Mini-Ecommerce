@@ -7,8 +7,10 @@ public record PaymentResponse(
     Long id,
     Long orderId,
     BigDecimal amount,
-    String method,
+    String paymentMethod,
     String status,
+    String failureReason,
+    String transactionId,
     LocalDateTime paidAt,
     LocalDateTime createdAt,
     LocalDateTime updatedAt

@@ -39,7 +39,7 @@ public class PaymentService {
         Payment p = repo.findById(req.paymentId())
                         .orElseThrow(() -> new IllegalArgumentException("Payment not found"));
 
-        if (p.getStatus() == Payment.Status.PAID && req.success()) {
+        if (p.getStatus() == Payment.Status.SUCCESS && req.success()) {
             return p;
         }
 

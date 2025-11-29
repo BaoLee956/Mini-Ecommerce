@@ -29,7 +29,20 @@ public class ShippingController {
     @PatchMapping("/{id}")
     public ResponseEntity<ShipmentResponse> update(@PathVariable Long id,
                                                    @RequestBody UpdateShipmentRequest req) {
-        Shipping s = svc.update(id, req);
+        UpdateShipmentRequest updatedReq = new UpdateShipmentRequest(
+            id,
+            req.carrierName(),
+            req.trackingNumber(),
+            req.status(),
+            req.address(),
+            req.city(),
+            req.postalCode(),
+            req.country(),
+            req.shippingCost(),
+            req.expectedDeliveryDate(),
+            req.notes()
+        );
+        Shipping s = svc.update(updatedReq);
         return ResponseEntity.ok(ShippingMapper.toResponse(s));
     }
 }

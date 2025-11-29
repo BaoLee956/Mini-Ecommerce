@@ -23,21 +23,30 @@ public class Payment extends BaseEntity {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
 
-    @Column(nullable = false)
-    private String method;
+    @Column(name = "payment_method", nullable = false)
+    private String paymentMethod;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status = Status.PENDING;
 
+    @Column(name = "failure_reason")
+    private String failureReason;
+
+    @Column(name = "transaction_id")
+    private String transactionId;
+
     @Column
     private LocalDateTime paidAt;
 
-    public enum Status {PENDING, PAID, FAILED}
+    public enum Status {PENDING, SUCCESS, FAILED}
     
     @Transient
     public Long getOrderId() {
-        return (order != null) ? order.getId() : null;
+        if (order == null) {
+            return null;
+        }
+        return order.getId();
     }
 
 }

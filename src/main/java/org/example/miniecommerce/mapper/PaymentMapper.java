@@ -9,8 +9,10 @@ public class PaymentMapper {
                 p.getId(),
                 p.getOrder() != null ? p.getOrder().getId() : null,
                 p.getAmount(),
-                p.getMethod(),
+                p.getPaymentMethod(),
                 p.getStatus().name().toLowerCase(),
+                p.getFailureReason(),
+                p.getTransactionId(),
                 p.getPaidAt(),
                 p.getCreatedAt(),
                 p.getUpdatedAt()
