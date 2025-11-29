@@ -34,4 +34,10 @@ public class Payment extends BaseEntity {
     private LocalDateTime paidAt;
 
     public enum Status {PENDING, PAID, FAILED}
+    
+    @Transient
+    public Long getOrderId() {
+        return (order != null) ? order.getId() : null;
+    }
+
 }

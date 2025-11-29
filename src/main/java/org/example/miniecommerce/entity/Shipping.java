@@ -29,4 +29,8 @@ public class Shipping extends BaseEntity {
     private Status status = Status.PENDING;
 
     public enum Status {PENDING, SHIPPED, DELIVERED}
+    @Transient
+    public Long getOrderId() {
+        return (order != null) ? order.getId() : null;
+    }
 }
