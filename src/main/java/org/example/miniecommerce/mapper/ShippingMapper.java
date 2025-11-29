@@ -8,11 +8,18 @@ public class ShippingMapper {
         return new ShipmentResponse(
                 s.getId(),
                 s.getOrder() != null ? s.getOrder().getId() : null,
-                s.getAddress(),
+                s.getCarrierName(),
+                s.getTrackingNumber(),
+                s.getDeliveryAddress(),
                 s.getCity(),
                 s.getPostalCode(),
                 s.getCountry(),
+                s.getShippingCost(),
                 s.getStatus().name().toLowerCase(),
+                s.getShippedAt(),
+                s.getExpectedDeliveryDate(),
+                s.getDeliveredAt(),
+                s.getNotes(),
                 s.getCreatedAt(),
                 s.getUpdatedAt()
         );
