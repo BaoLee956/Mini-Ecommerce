@@ -149,33 +149,9 @@ CREATE TABLE shipments
     INDEX idx_shipped_at (shipped_at)
 );
 
--- PAYMENT STATUS HISTORY (New table for audit trail)
-CREATE TABLE payment_status_history
-(
-    id               BIGINT AUTO_INCREMENT PRIMARY KEY,
-    payment_id       BIGINT,
-    old_status       VARCHAR(50),
-    new_status       VARCHAR(50),
-    reason           VARCHAR(255),
-    changed_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_psh_payment FOREIGN KEY (payment_id) REFERENCES payments (id),
-    INDEX idx_payment_id (payment_id),
-    INDEX idx_changed_at (changed_at)
-);
 
--- SHIPMENT STATUS HISTORY (New table for audit trail)
-CREATE TABLE shipment_status_history
-(
-    id               BIGINT AUTO_INCREMENT PRIMARY KEY,
-    shipment_id      BIGINT,
-    old_status       VARCHAR(50),
-    new_status       VARCHAR(50),
-    notes            VARCHAR(255),
-    changed_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_ssh_shipment FOREIGN KEY (shipment_id) REFERENCES shipments (id),
-    INDEX idx_shipment_id (shipment_id),
-    INDEX idx_changed_at (changed_at)
-);
+
+
 
 -- ============================
 -- SAMPLE DATA
@@ -330,47 +306,6 @@ VALUES
 -- Pending order without shipment (will be created later or not)
 (11, 'GRAB', 'GRAB011', '789 Red St', 'Da Nang', '550001', 'Vietnam', 28000, 'PROCESSING', NULL, DATE_ADD(NOW(), INTERVAL 3 DAY), NULL, DATE_SUB(NOW(), INTERVAL 1 DAY));
 
--- PAYMENT STATUS HISTORY
-INSERT INTO payment_status_history (payment_id, old_status, new_status, reason, changed_at)
-VALUES
-(1, 'PENDING', 'SUCCESS', 'Payment processed successfully', '2024-01-15'),
-(2, 'PENDING', 'SUCCESS', 'Bank transfer confirmed', '2024-01-20'),
-(3, 'PENDING', 'SUCCESS', 'E-wallet payment confirmed', '2024-04-10'),
-(4, 'PENDING', 'SUCCESS', 'Payment processed successfully', '2024-04-25'),
-(5, 'PENDING', 'SUCCESS', 'Bank transfer confirmed', '2024-07-08'),
-(6, 'PENDING', 'SUCCESS', 'E-wallet payment confirmed', '2024-07-22'),
-(7, 'PENDING', 'SUCCESS', 'Payment processed successfully', '2024-10-05'),
-(8, 'PENDING', 'SUCCESS', 'Payment received', '2024-10-18'),
-(9, 'PENDING', 'SUCCESS', 'Payment processed successfully', DATE_SUB(NOW(), INTERVAL 1 DAY)),
-(10, 'PENDING', 'SUCCESS', 'Bank transfer confirmed', DATE_SUB(NOW(), INTERVAL 2 DAY)),
-(11, 'PENDING', 'FAILED', 'Insufficient funds in account', DATE_SUB(NOW(), INTERVAL 1 DAY)),
-(12, 'PENDING', 'FAILED', 'Card declined', '2024-01-14');
 
--- SHIPMENT STATUS HISTORY
-INSERT INTO shipment_status_history (shipment_id, old_status, new_status, notes, changed_at)
-VALUES
--- January shipments
-(1, 'PROCESSING', 'SHIPPED', 'Shipped by GRAB driver', '2024-01-16'),
-(1, 'SHIPPED', 'DELIVERED', 'Delivered to customer', '2024-01-17'),
-(2, 'PROCESSING', 'SHIPPED', 'Package collected by GHN', '2024-01-21'),
-(2, 'SHIPPED', 'DELIVERED', 'Delivered successfully', '2024-01-22'),
--- April shipments
-(3, 'PROCESSING', 'SHIPPED', 'Package ready for delivery', '2024-04-11'),
-(3, 'SHIPPED', 'DELIVERED', 'Delivered on time', '2024-04-13'),
-(4, 'PROCESSING', 'SHIPPED', 'Shipped by GRAB driver', '2024-04-26'),
-(4, 'SHIPPED', 'DELIVERED', 'Delivered successfully', '2024-04-28'),
--- July shipments
-(5, 'PROCESSING', 'SHIPPED', 'Package collected by GHN', '2024-07-09'),
-(5, 'SHIPPED', 'DELIVERED', 'Delivered on time', '2024-07-10'),
-(6, 'PROCESSING', 'SHIPPED', 'Package ready for delivery', '2024-07-23'),
-(6, 'SHIPPED', 'DELIVERED', 'Delivered successfully', '2024-07-24'),
--- October shipments
-(7, 'PROCESSING', 'SHIPPED', 'Shipped by GRAB driver', '2024-10-06'),
-(7, 'SHIPPED', 'DELIVERED', 'Delivered on time', '2024-10-08'),
-(8, 'PROCESSING', 'SHIPPED', 'Package collected by GHN', '2024-10-19'),
-(8, 'SHIPPED', 'DELIVERED', 'Delivered successfully', '2024-10-20'),
--- Recent shipments
-(9, 'PROCESSING', 'SHIPPED', 'Shipped by GRAB driver', DATE_SUB(NOW(), INTERVAL 1 DAY)),
-(9, 'SHIPPED', 'DELIVERED', 'Delivered to customer', DATE_SUB(NOW(), INTERVAL 0 DAY)),
-(10, 'PROCESSING', 'SHIPPED', 'Package collected by Viettel', DATE_SUB(NOW(), INTERVAL 2 DAY)),
-(10, 'SHIPPED', 'IN_TRANSIT', 'In transit to destination', DATE_SUB(NOW(), INTERVAL 1 DAY));
+
+
