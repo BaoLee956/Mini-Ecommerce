@@ -1,11 +1,13 @@
 package org.example.miniecommerce.factory;
 
 import org.example.miniecommerce.dto.shipping.CreateShipmentRequest;
+import org.example.miniecommerce.dto.shipping.UpdateShipmentRequest;
 import org.example.miniecommerce.entity.Order;
 import org.example.miniecommerce.entity.OrderStatus;
 import org.example.miniecommerce.entity.Shipping;
 
 public class ShippingFactory {
+
     public static Shipping fromCreateRequest(CreateShipmentRequest req, Order order) {
         Shipping s = new Shipping();
         s.setOrder(order);
@@ -17,20 +19,19 @@ public class ShippingFactory {
         return s;
     }
 
-    public static void applyUpdate(Shipping s, String status, String address, String city, String postalCode, String country) {
-        if (status != null) {
-            Shipping.Status newStatus = Shipping.Status.valueOf(status);
+    public static void applyUpdate(Shipping s, UpdateShipmentRequest req) {
+        if (req.status() != null) {
+            Shipping.Status newStatus = Shipping.Status.valueOf(req.status());
             s.setStatus(newStatus);
             if (newStatus == Shipping.Status.SHIPPED) {
                 s.getOrder().setStatus(OrderStatus.SHIPPED);
-            }
-            else if (newStatus == Shipping.Status.DELIVERED) {
+            } else if (newStatus == Shipping.Status.DELIVERED) {
                 s.getOrder().setStatus(OrderStatus.DELIVERED);
             }
         }
-        if (address != null) s.setAddress(address);
-        if (city != null) s.setCity(city);
-        if (postalCode != null) s.setPostalCode(postalCode);
-        if (country != null) s.setCountry(country);
+        if (req.address() != null) s.setAddress(req.address());
+        if (req.city() != null) s.setCity(req.city());
+        if (req.postalCode() != null) s.setPostalCode(req.postalCode());
+        if (req.country() != null) s.setCountry(req.country());
     }
 }

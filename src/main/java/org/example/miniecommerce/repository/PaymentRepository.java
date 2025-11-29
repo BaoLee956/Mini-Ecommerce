@@ -1,10 +1,71 @@
 package org.example.miniecommerce.repository;
 
 import org.example.miniecommerce.entity.Payment;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
-public interface PaymentRepository extends JpaRepository<Payment, Long> {
-    List<Payment> findByOrderId(Long orderId);
+@Repository
+public class PaymentRepository {
+
+    private final JdbcTemplate jdbcTemplate;
+
+    public PaymentRepository(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    public void save(Payment payment) {
+        String sql = "INSERT INTO payments (order_id, amount, method, status, created_at, updated_at) " +
+                     "VALUES (?, ?, ?, ?, NOW(), NOW())";
+        jdbcTemplate.update(sql,
+            payment.getOrderId(),
+            payment.getAmount(),
+            payment.getMethod(),
+            payment.getStatus().name()
+        );
+    }
+
+    public void update(Payment payment) {
+        String sql = "UPDATE payments SET amount = ?, method = ?, status = ?, paid_at = ?, updated_at = NOW() WHERE id = ?";
+        jdbcTemplate.update(sql,
+            payment.getAmount(),
+            payment.getMethod(),
+            payment.getStatus().name(),
+            payment.getPaidAt(),
+            payment.getId()
+        );
+    }
+
+    public Optional<Payment> findById(Long id) {
+        String sql = "SELECT id, order_id, amount, method, status, paid_at FROM payments WHERE id = ?";
+        List<Payment> results = jdbcTemplate.query(sql, ps -> ps.setLong(1, id), (rs, rowNum) -> {
+            Payment p = new Payment();
+            p.setId(rs.getLong("id"));
+            p.setAmount(rs.getBigDecimal("amount"));
+            p.setMethod(rs.getString("method"));
+            p.setStatus(Payment.Status.valueOf(rs.getString("status")));
+            if (rs.getTimestamp("paid_at") != null) {
+                p.setPaidAt(rs.getTimestamp("paid_at").toLocalDateTime());
+            }
+            return p;
+        });
+        return results.stream().findFirst();
+    }
+
+    public List<Payment> findByOrderId(Long orderId) {
+        String sql = "SELECT id, order_id, amount, method, status, paid_at FROM payments WHERE order_id = ?";
+        return jdbcTemplate.query(sql, ps -> ps.setLong(1, orderId), (rs, rowNum) -> {
+            Payment p = new Payment();
+            p.setId(rs.getLong("id"));
+            p.setAmount(rs.getBigDecimal("amount"));
+            p.setMethod(rs.getString("method"));
+            p.setStatus(Payment.Status.valueOf(rs.getString("status")));
+            if (rs.getTimestamp("paid_at") != null) {
+                p.setPaidAt(rs.getTimestamp("paid_at").toLocalDateTime());
+            }
+            return p;
+        });
+    }
 }

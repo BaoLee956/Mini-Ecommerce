@@ -24,15 +24,29 @@ public class PaymentService {
     public Payment create(CreatePaymentRequest req) {
         Order order = orderLookup.findByIdOrThrow(req.orderId());
         Payment p = PaymentFactory.fromCreateRequest(req, order);
-        return repo.save(p);
+
+        repo.save(p);
+
+        // Sau khi save, query lại để lấy Payment mới nhất
+        return repo.findByOrderId(order.getId())
+                   .stream()
+                   .reduce((first, second) -> second)
+                   .orElse(p);
     }
 
     @Transactional
     public Payment confirm(ConfirmPaymentRequest req) {
         Payment p = repo.findById(req.paymentId())
-            .orElseThrow(() -> new IllegalArgumentException("Payment not found"));
-        if (p.getStatus() == Payment.Status.PAID && req.success()) return p;
+                        .orElseThrow(() -> new IllegalArgumentException("Payment not found"));
+
+        if (p.getStatus() == Payment.Status.PAID && req.success()) {
+            return p;
+        }
+
         PaymentFactory.applyConfirm(p, req.success());
-        return repo.save(p);
+
+        repo.update(p);
+
+        return p;
     }
 }
