@@ -2,11 +2,16 @@ package org.example.miniecommerce.service;
 
 import lombok.RequiredArgsConstructor;
 import org.example.miniecommerce.factory.OrderFactory;
-import org.example.miniecommerce.dto.order.*;
+import org.example.miniecommerce.dto.order.CreateOrderRequest;
+import org.example.miniecommerce.dto.order.DeleteResponse;
+import org.example.miniecommerce.dto.order.OrderItemDto;
+import org.example.miniecommerce.dto.order.OrderResponse;
+import org.example.miniecommerce.dto.order.OrderStatusResponse;
+import org.example.miniecommerce.dto.order.UpdateOrderStatusRequest;
 import org.example.miniecommerce.entity.Order;
 import org.example.miniecommerce.entity.OrderStatus;
 import org.example.miniecommerce.repository.OrderRepository;
-import org.springframework.context.ApplicationEventPublisher;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +25,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderFactory orderFactory;
-    private final ApplicationEventPublisher eventPublisher;
+
 
     // POST /api/orders
     @Override
@@ -67,12 +72,7 @@ public class OrderServiceImpl implements OrderService {
 
         // Gọi Payment & Shipping Service (Event-driven)
         if (request.status() == OrderStatus.PAID) {
-            // Publish event: OrderConfirmedEvent → PaymentService, ShippingService
-            eventPublisher.publishEvent(
-                    new OrderConfirmedEvent(order.getId(), order.getUserId(), order.getTotalAmount(), order.getItems()
-                            .stream()
-                            .map(item -> new OrderItemDto(item.getProductId(), item.getQuantity(), item.getPrice()))
-                            .toList()));
+            // Logic xử lý khi thanh toán thành công (nếu cần)
         }
 
         return new OrderStatusResponse(order.getId(), order.getStatus(), LocalDateTime.now());
