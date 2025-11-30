@@ -29,15 +29,15 @@ public class ShippingService {
 
         // Sau khi save, query lại để lấy Shipping mới nhất
         return repo.findByOrderId(order.getId())
-                   .stream()
-                   .reduce((first, second) -> second)
-                   .orElse(s);
+                .stream()
+                .reduce((first, second) -> second)
+                .orElse(s);
     }
 
     @Transactional
-    public Shipping update(UpdateShipmentRequest req) {
-        Shipping s = repo.findById(req.shippingId())
-                         .orElseThrow(() -> new IllegalArgumentException("Shipping not found"));
+    public Shipping update(Long id, UpdateShipmentRequest req) {
+        Shipping s = repo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Shipping not found"));
 
         ShippingFactory.applyUpdate(s, req);
 
