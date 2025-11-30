@@ -112,13 +112,39 @@ public class CategoryRepository {
     }
 
     public void delete(Long id) {
-        String sql = "UPDATE categories SET deleted_at = :now WHERE id = :id AND deleted_at IS NULL";
+        LocalDateTime now = LocalDateTime.now();
 
-        MapSqlParameterSource params = new MapSqlParameterSource()
-                .addValue("id", id)
-                .addValue("now", LocalDateTime.now());
+        // 1. Cascade soft-delete tất cả Product thuộc Category này trước
+        String sqlProduct = """
+                UPDATE products
+                SET deleted_at = :now
+                WHERE category_id = :categoryId
+                AND deleted_at IS NULL
+                """;
 
-        jdbc.update(sql, params);
+        MapSqlParameterSource productParams = new MapSqlParameterSource()
+                .addValue("now", now)
+                .addValue("categoryId", id);
+
+        jdbc.update(sqlProduct, productParams);
+
+        // 2. Sau đó mới soft-delete Category
+        String sqlCategory = """
+                UPDATE categories
+                SET deleted_at = :now
+                WHERE id = :id
+                AND deleted_at IS NULL
+                """;
+
+        MapSqlParameterSource categoryParams = new MapSqlParameterSource()
+                .addValue("now", now)
+                .addValue("id", id);
+
+        int updated = jdbc.update(sqlCategory, categoryParams);
+
+        if (updated == 0) {
+            throw new RuntimeException("Category not found or already deleted");
+        }
     }
 
     private long countActive() {
