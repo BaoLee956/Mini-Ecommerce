@@ -5,7 +5,6 @@ import org.example.miniecommerce.dto.user.UpdateUserRequest;
 import org.example.miniecommerce.dto.user.UserResponse;
 import org.example.miniecommerce.entity.User;
 import org.example.miniecommerce.repository.UserRoleRepository;
-import org.example.miniecommerce.repository.Impl.UserRoleRepositotyImpl;
 import org.springframework.stereotype.Component;
 
 import lombok.AllArgsConstructor;
