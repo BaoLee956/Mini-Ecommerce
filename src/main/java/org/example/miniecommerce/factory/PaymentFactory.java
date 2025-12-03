@@ -12,16 +12,18 @@ public class PaymentFactory {
         Payment p = new Payment();
         p.setOrder(order);
         p.setAmount(req.amount());
-        p.setMethod(req.method());
+        p.setPaymentMethod(req.method());
         p.setStatus(Payment.Status.PENDING);
         return p;
     }
 
     public static void applyConfirm(Payment p, boolean success) {
         if (success) {
-            p.setStatus(Payment.Status.PAID);
+            p.setStatus(Payment.Status.SUCCESS);
             p.setPaidAt(LocalDateTime.now());
-            p.getOrder().setStatus(OrderStatus.PAID);
+            if (p.getOrder() != null) {
+                p.getOrder().setStatus(OrderStatus.PAID);
+            }
         } else {
             p.setStatus(Payment.Status.FAILED);
         }
