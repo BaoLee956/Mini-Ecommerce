@@ -16,7 +16,6 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
-    private final AuthService authService; // Lấy userId từ token
 
     @PostMapping
     public ResponseEntity<OrderResponse> createOrder(@RequestBody CreateOrderRequest request,

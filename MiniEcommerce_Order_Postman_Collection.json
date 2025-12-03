@@ -1,0 +1,190 @@
+{
+	"info": {
+		"_postman_id": "b5a3c7d9-1234-4567-8901-abcdef123456",
+		"name": "Mini-Ecommerce Orders",
+		"description": "Collection to test Order functionalities for Mini-Ecommerce project.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Create Order",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "userId",
+						"value": "2",
+						"description": "User ID (John Doe)",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"items\": [\n    {\n      \"productId\": 1,\n      \"quantity\": 2,\n      \"price\": 100000\n    },\n    {\n      \"productId\": 3,\n      \"quantity\": 5,\n      \"price\": 50000\n    }\n  ]\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/orders",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"orders"
+					]
+				},
+				"description": "Create a new order for User 2. Note: 'price' in body is required by DTO validation but ignored by server logic (server fetches price from DB)."
+			},
+			"response": []
+		},
+		{
+			"name": "2. Get My Orders",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "userId",
+						"value": "2",
+						"description": "User ID (John Doe)",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/orders/me",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"orders",
+						"me"
+					]
+				},
+				"description": "Get all orders for the current user."
+			},
+			"response": []
+		},
+		{
+			"name": "3. Get Order Detail",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "userId",
+						"value": "2",
+						"description": "User ID (John Doe)",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/orders/1",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"orders",
+						"1"
+					]
+				},
+				"description": "Get details of Order #1 (owned by User 2)."
+			},
+			"response": []
+		},
+		{
+			"name": "4. Update Order Status (Pay)",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "userId",
+						"value": "2",
+						"description": "User ID (John Doe) - Only owner can update status currently",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"status\": \"PAID\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/orders/1/status",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"orders",
+						"1",
+						"status"
+					]
+				},
+				"description": "Update status of Order #1 to PAID."
+			},
+			"response": []
+		},
+		{
+			"name": "5. Delete Order (Pending)",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "userId",
+						"value": "4",
+						"description": "User ID (Alice Brown) - Owner of Order #11",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/orders/11",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"orders",
+						"11"
+					]
+				},
+				"description": "Delete Order #11 (which is PENDING). Note: Only PENDING orders can be deleted."
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}
