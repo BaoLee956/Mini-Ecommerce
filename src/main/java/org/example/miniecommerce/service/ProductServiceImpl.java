@@ -44,7 +44,7 @@ public class ProductServiceImpl implements ProductService {
         Category category = categoryRepository.findById(req.categoryId())
                 .orElseThrow(() -> new NoSuchElementException("Category not found"));
         Product product = ProductFactory.fromCreateRequest(req, category);
-        return ProductFactory.toResponse(productRepository.save(product));
+        return ProductFactory.toResponse(productRepository.insert(product));
     }
 
     @Override
@@ -61,13 +61,13 @@ public class ProductServiceImpl implements ProductService {
         Category category = categoryRepository.findById(req.categoryId())
                 .orElseThrow(() -> new NoSuchElementException("Category not found"));
         ProductFactory.updateProduct(product, req, category);
-        return ProductFactory.toResponse(productRepository.save(product));
+        return ProductFactory.toResponse(productRepository.update(product));
     }
 
     @Override
     public void delete(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Product not found"));
-        productRepository.delete(product);
+        productRepository.delete(product.getId());
     }
 }
