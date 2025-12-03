@@ -32,7 +32,7 @@ public class ProductFactory {
                 p.getDescription(),
                 p.getPrice(),
                 p.getStockQuantity(),
-                p.getCategory() != null ? p.getCategory().getId() : null
+                p.getCategoryId()
         );
     }
 }
