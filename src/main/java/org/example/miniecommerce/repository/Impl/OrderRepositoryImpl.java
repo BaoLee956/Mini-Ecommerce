@@ -8,6 +8,7 @@ import org.example.miniecommerce.dto.order.TopProductDto;
 import org.example.miniecommerce.entity.Order;
 import org.example.miniecommerce.entity.OrderItem;
 import org.example.miniecommerce.entity.OrderStatus;
+import org.example.miniecommerce.repository.OrderItemRepository;
 import org.example.miniecommerce.repository.OrderRepository;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -28,6 +29,7 @@ import java.util.Optional;
 public class OrderRepositoryImpl implements OrderRepository {
 
     private final JdbcTemplate jdbcTemplate;
+    private final OrderItemRepository orderItemRepository;
 
     private final RowMapper<Order> orderRowMapper = new RowMapper<>() {
         @Override
@@ -157,11 +159,26 @@ public class OrderRepositoryImpl implements OrderRepository {
                     .longValue();
             order.setId(generatedId);
             order.setCreatedAt(now);
+
+            // Save order items after order is created
+            for (OrderItem item : order.getItems()) {
+                item.setOrderId(generatedId);
+                item.setCreatedAt(now);
+                item.setUpdatedAt(now);
+                orderItemRepository.save(item);
+            }
         } else {
             sql = "UPDATE orders SET user_id = ?, total_amount = ?, status = ?, updated_at = ? WHERE id = ?";
             jdbcTemplate.update(sql, order.getUserId(), order.getTotalAmount(), order.getStatus()
                     .name(), now, order.getId());
             order.setUpdatedAt(now);
+
+            // Update order items
+            for (OrderItem item : order.getItems()) {
+                item.setOrderId(order.getId());
+                item.setUpdatedAt(now);
+                orderItemRepository.save(item);
+            }
         }
         return order;
     }
@@ -242,17 +259,18 @@ public class OrderRepositoryImpl implements OrderRepository {
     @Override
     public List<OrderDetailWithProductDto> getOrdersWithProductInfo(Long userId) {
         String sql = """
-                SELECT 
+                SELECT
                     o.id AS order_id,
                     o.user_id,
                     o.total_amount,
                     o.status,
                     o.created_at,
                     COUNT(oi.id) AS item_count,
-                    GROUP_CONCAT(CONCAT(p.name, ' x', oi.quantity) SEPARATOR ', ') AS items_summary,
-                    CASE 
-                        WHEN p.stock_quantity > 10 THEN 'IN_STOCK'
-                        WHEN p.stock_quantity > 0 THEN 'LOW_STOCK'
+                    CONCAT(COALESCE(COUNT(oi.id), 0), ' item(s)') AS items_summary,
+                    CASE
+                        WHEN COALESCE(MIN(p.stock_quantity), 0) > 10 THEN 'IN_STOCK'
+                        WHEN COALESCE(MIN(p.stock_quantity), 0) > 0 THEN 'LOW_STOCK'
+                        WHEN COUNT(oi.id) = 0 THEN 'NO_ITEMS'
                         ELSE 'OUT_OF_STOCK'
                     END AS inventory_status
                 FROM orders o
@@ -260,7 +278,7 @@ public class OrderRepositoryImpl implements OrderRepository {
                 LEFT JOIN products p ON oi.product_id = p.id AND p.deleted_at IS NULL
                 WHERE o.deleted_at IS NULL
                     AND o.user_id = ?
-                GROUP BY o.id, o.user_id, o.total_amount, o.status, o.created_at, p.stock_quantity
+                GROUP BY o.id, o.user_id, o.total_amount, o.status, o.created_at
                 ORDER BY o.created_at DESC
                 """;
         return jdbcTemplate.query(sql, orderDetailMapper, userId);

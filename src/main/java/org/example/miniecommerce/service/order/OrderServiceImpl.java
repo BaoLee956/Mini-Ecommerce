@@ -1,10 +1,12 @@
 package org.example.miniecommerce.service.order;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.miniecommerce.dto.order.*;
 import org.example.miniecommerce.entity.Order;
 import org.example.miniecommerce.entity.OrderStatus;
 import org.example.miniecommerce.repository.OrderRepository;
+import org.example.miniecommerce.service.UserService;
 import org.example.miniecommerce.service.order.decorator.OrderDecoratorManager;
 import org.example.miniecommerce.service.order.decorator.OrderDecoratorName;
 import org.example.miniecommerce.service.order.template.StandardCreateOrderProcessor;
@@ -19,16 +21,19 @@ import java.util.Optional;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final StandardCreateOrderProcessor orderProcessor;
     private final OrderDecoratorManager decoratorManager;
+    private final UserService userService;
 
 
     // POST /api/orders - Enhanced with Template Method Pattern
     @Override
     public OrderResponse createOrder(Long userId, CreateOrderRequest request) {
+        validateUserExists(userId);
         // Use Template Method Pattern for order processing
         Order order = orderProcessor.processOrder(userId, request);
         return mapToResponse(order);
@@ -37,6 +42,9 @@ public class OrderServiceImpl implements OrderService {
     // GET /api/orders/me
     @Override
     public List<OrderResponse> getMyOrders(Long userId) {
+        // Validate user exists
+        validateUserExists(userId);
+        
         return orderRepository.findByUserId(userId)
                 .stream()
                 .map(this::mapToResponse)
@@ -46,6 +54,9 @@ public class OrderServiceImpl implements OrderService {
     // GET /api/orders/{id}
     @Override
     public OrderResponse getOrderById(Long id, Long userId) {
+        // Validate user exists
+        validateUserExists(userId);
+        
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
         if (!order.getUserId()
@@ -66,6 +77,9 @@ public class OrderServiceImpl implements OrderService {
     // PUT /api/orders/{id}/status - Enhanced with State Pattern
     @Override
     public OrderStatusResponse updateStatus(Long id, UpdateOrderStatusRequest request, Long userId) {
+        // Validate user exists
+        validateUserExists(userId);
+        
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
@@ -90,6 +104,9 @@ public class OrderServiceImpl implements OrderService {
     // DELETE /api/orders/{id}
     @Override
     public DeleteResponse deleteOrder(Long id, Long userId) {
+        // Validate user exists
+        validateUserExists(userId);
+        
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
@@ -126,5 +143,15 @@ public class OrderServiceImpl implements OrderService {
                 .map(item -> new OrderItemDto(item.getProductId(), item.getQuantity(), item.getPrice()))
                 .toList();
         return new OrderResponse(order.getId(), order.getUserId(), order.getTotalAmount(), order.getStatus(), items);
+    }
+
+    private void validateUserExists(Long userId) {
+        try {
+            userService.getUserId(String.valueOf(userId));
+            log.debug("User with id {} exists in database", userId);
+        } catch (RuntimeException e) {
+            log.error("User with id {} does not exist in database", userId);
+            throw new IllegalArgumentException("User with id " + userId + " does not exist", e);
+        }
     }
 }

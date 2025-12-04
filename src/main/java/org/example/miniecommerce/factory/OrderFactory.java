@@ -8,6 +8,7 @@ import org.example.miniecommerce.entity.Order;
 import org.example.miniecommerce.entity.OrderItem;
 import org.example.miniecommerce.entity.OrderStatus;
 import org.example.miniecommerce.service.ProductService;
+import org.example.miniecommerce.service.UserService;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -20,6 +21,7 @@ import java.util.List;
 public class OrderFactory {
 
     private final ProductService productService;
+    // private final UserService userService;
 
 
     public Order createOrder(Long userId, List<CreateOrderItemDto> itemsDto) {
@@ -28,6 +30,16 @@ public class OrderFactory {
             log.error("UserId cannot be null");
             throw new IllegalArgumentException("UserId cannot be null");
         }
+
+        // Validate user exists in database
+        // try {
+        //     userService.getUserId(String.valueOf(userId));
+        //     log.info("User with id {} exists in database", userId);
+        // } catch (RuntimeException e) {
+        //     log.error("User with id {} does not exist in database", userId);
+        //     throw new IllegalArgumentException("User with id " + userId + " does not exist", e);
+        // }
+
         if (itemsDto == null || itemsDto.isEmpty()) {
             log.error("Items list cannot be null or empty");
             throw new IllegalArgumentException("Items list cannot be null or empty");
