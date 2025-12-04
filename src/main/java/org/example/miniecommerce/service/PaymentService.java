@@ -9,6 +9,8 @@ import org.example.miniecommerce.repository.PaymentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 public class PaymentService {
 
@@ -48,5 +50,44 @@ public class PaymentService {
         repo.update(p);
 
         return p;
+    }
+
+    public List<Payment> getAll() {
+        return repo.findAll();
+    }
+
+    public Payment getById(Long id) {
+        return repo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Payment not found"));
+    }
+
+    public List<Payment> getByOrderId(Long orderId) {
+        return repo.findByOrderId(orderId);
+    }
+
+    public List<Payment> getByStatus(Payment.Status status) {
+        return repo.findByStatus(status);
+    }
+
+    @Transactional
+    public void deleteById(Long id) {
+        Payment payment = getById(id);
+        repo.deleteById(id);
+    }
+
+    public int count() {
+        return repo.count();
+    }
+
+    public int countByStatus(Payment.Status status) {
+        return repo.countByStatus(status);
+    }
+
+    public List<Payment> getAllPaginated(int page, int size) {
+        return repo.findAllPaginated(page, size);
+    }
+
+    public List<Payment> getByPaymentMethod(String paymentMethod) {
+        return repo.findByPaymentMethod(paymentMethod);
     }
 }

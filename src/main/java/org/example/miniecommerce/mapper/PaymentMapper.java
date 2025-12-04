@@ -7,7 +7,7 @@ public class PaymentMapper {
     public static PaymentResponse toResponse(Payment p) {
         return new PaymentResponse(
                 p.getId(),
-                p.getOrder() != null ? p.getOrder().getId() : null,
+                p.getOrderId(),
                 p.getAmount(),
                 p.getPaymentMethod(),
                 p.getStatus().name().toLowerCase(),

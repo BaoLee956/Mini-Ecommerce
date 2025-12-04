@@ -11,6 +11,7 @@ public class PaymentFactory {
     public static Payment fromCreateRequest(CreatePaymentRequest req, Order order) {
         Payment p = new Payment();
         p.setOrder(order);
+        p.setOrderId(order.getId());
         p.setAmount(req.amount());
         p.setPaymentMethod(req.method());
         p.setStatus(Payment.Status.PENDING);

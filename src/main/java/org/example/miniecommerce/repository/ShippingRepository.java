@@ -56,6 +56,7 @@ public class ShippingRepository {
         List<Shipping> results = jdbcTemplate.query(sql, ps -> ps.setLong(1, id), (rs, rowNum) -> {
             Shipping s = new Shipping();
             s.setId(rs.getLong("id"));
+            s.setOrderId(rs.getLong("order_id"));
             s.setCarrierName(rs.getString("carrier_name"));
             s.setTrackingNumber(rs.getString("tracking_number"));
             s.setDeliveryAddress(rs.getString("delivery_address"));
@@ -90,6 +91,162 @@ public class ShippingRepository {
         return jdbcTemplate.query(sql, ps -> ps.setLong(1, orderId), (rs, rowNum) -> {
             Shipping s = new Shipping();
             s.setId(rs.getLong("id"));
+            s.setOrderId(rs.getLong("order_id"));
+            s.setCarrierName(rs.getString("carrier_name"));
+            s.setTrackingNumber(rs.getString("tracking_number"));
+            s.setDeliveryAddress(rs.getString("delivery_address"));
+            s.setCity(rs.getString("city"));
+            s.setPostalCode(rs.getString("postal_code"));
+            s.setCountry(rs.getString("country"));
+            s.setShippingCost(rs.getBigDecimal("shipping_cost"));
+            s.setStatus(Shipping.Status.valueOf(rs.getString("status")));
+            if (rs.getTimestamp("shipped_at") != null) {
+                s.setShippedAt(rs.getTimestamp("shipped_at").toLocalDateTime());
+            }
+            if (rs.getTimestamp("expected_delivery_date") != null) {
+                s.setExpectedDeliveryDate(rs.getTimestamp("expected_delivery_date").toLocalDateTime());
+            }
+            if (rs.getTimestamp("delivered_at") != null) {
+                s.setDeliveredAt(rs.getTimestamp("delivered_at").toLocalDateTime());
+            }
+            if (rs.getTimestamp("created_at") != null) {
+                s.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+            }
+            if (rs.getTimestamp("updated_at") != null) {
+                s.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
+            }
+            s.setNotes(rs.getString("notes"));
+            return s;
+        });
+    }
+
+    public List<Shipping> findAll() {
+        String sql = "SELECT id, order_id, carrier_name, tracking_number, delivery_address, city, postal_code, country, shipping_cost, status, shipped_at, expected_delivery_date, delivered_at, notes, created_at, updated_at FROM shipments WHERE deleted_at IS NULL ORDER BY created_at DESC";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            Shipping s = new Shipping();
+            s.setId(rs.getLong("id"));
+            s.setOrderId(rs.getLong("order_id"));
+            s.setCarrierName(rs.getString("carrier_name"));
+            s.setTrackingNumber(rs.getString("tracking_number"));
+            s.setDeliveryAddress(rs.getString("delivery_address"));
+            s.setCity(rs.getString("city"));
+            s.setPostalCode(rs.getString("postal_code"));
+            s.setCountry(rs.getString("country"));
+            s.setShippingCost(rs.getBigDecimal("shipping_cost"));
+            s.setStatus(Shipping.Status.valueOf(rs.getString("status")));
+            if (rs.getTimestamp("shipped_at") != null) {
+                s.setShippedAt(rs.getTimestamp("shipped_at").toLocalDateTime());
+            }
+            if (rs.getTimestamp("expected_delivery_date") != null) {
+                s.setExpectedDeliveryDate(rs.getTimestamp("expected_delivery_date").toLocalDateTime());
+            }
+            if (rs.getTimestamp("delivered_at") != null) {
+                s.setDeliveredAt(rs.getTimestamp("delivered_at").toLocalDateTime());
+            }
+            if (rs.getTimestamp("created_at") != null) {
+                s.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+            }
+            if (rs.getTimestamp("updated_at") != null) {
+                s.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
+            }
+            s.setNotes(rs.getString("notes"));
+            return s;
+        });
+    }
+
+    public List<Shipping> findByStatus(Shipping.Status status) {
+        String sql = "SELECT id, order_id, carrier_name, tracking_number, delivery_address, city, postal_code, country, shipping_cost, status, shipped_at, expected_delivery_date, delivered_at, notes, created_at, updated_at FROM shipments WHERE status = ? AND deleted_at IS NULL ORDER BY created_at DESC";
+        return jdbcTemplate.query(sql, ps -> ps.setString(1, status.name()), (rs, rowNum) -> {
+            Shipping s = new Shipping();
+            s.setId(rs.getLong("id"));
+            s.setOrderId(rs.getLong("order_id"));
+            s.setCarrierName(rs.getString("carrier_name"));
+            s.setTrackingNumber(rs.getString("tracking_number"));
+            s.setDeliveryAddress(rs.getString("delivery_address"));
+            s.setCity(rs.getString("city"));
+            s.setPostalCode(rs.getString("postal_code"));
+            s.setCountry(rs.getString("country"));
+            s.setShippingCost(rs.getBigDecimal("shipping_cost"));
+            s.setStatus(Shipping.Status.valueOf(rs.getString("status")));
+            if (rs.getTimestamp("shipped_at") != null) {
+                s.setShippedAt(rs.getTimestamp("shipped_at").toLocalDateTime());
+            }
+            if (rs.getTimestamp("expected_delivery_date") != null) {
+                s.setExpectedDeliveryDate(rs.getTimestamp("expected_delivery_date").toLocalDateTime());
+            }
+            if (rs.getTimestamp("delivered_at") != null) {
+                s.setDeliveredAt(rs.getTimestamp("delivered_at").toLocalDateTime());
+            }
+            if (rs.getTimestamp("created_at") != null) {
+                s.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+            }
+            if (rs.getTimestamp("updated_at") != null) {
+                s.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
+            }
+            s.setNotes(rs.getString("notes"));
+            return s;
+        });
+    }
+
+    public void deleteById(Long id) {
+        String sql = "UPDATE shipments SET deleted_at = NOW() WHERE id = ?";
+        jdbcTemplate.update(sql, id);
+    }
+
+    public int count() {
+        String sql = "SELECT COUNT(*) FROM shipments WHERE deleted_at IS NULL";
+        return jdbcTemplate.queryForObject(sql, Integer.class);
+    }
+
+    public int countByStatus(Shipping.Status status) {
+        String sql = "SELECT COUNT(*) FROM shipments WHERE status = ? AND deleted_at IS NULL";
+        return jdbcTemplate.queryForObject(sql, Integer.class, status.name());
+    }
+
+    public List<Shipping> findAllPaginated(int page, int size) {
+        int offset = page * size;
+        String sql = "SELECT id, order_id, carrier_name, tracking_number, delivery_address, city, postal_code, country, shipping_cost, status, shipped_at, expected_delivery_date, delivered_at, notes, created_at, updated_at FROM shipments WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT ? OFFSET ?";
+        return jdbcTemplate.query(sql, ps -> {
+            ps.setInt(1, size);
+            ps.setInt(2, offset);
+        }, (rs, rowNum) -> {
+            Shipping s = new Shipping();
+            s.setId(rs.getLong("id"));
+            s.setOrderId(rs.getLong("order_id"));
+            s.setCarrierName(rs.getString("carrier_name"));
+            s.setTrackingNumber(rs.getString("tracking_number"));
+            s.setDeliveryAddress(rs.getString("delivery_address"));
+            s.setCity(rs.getString("city"));
+            s.setPostalCode(rs.getString("postal_code"));
+            s.setCountry(rs.getString("country"));
+            s.setShippingCost(rs.getBigDecimal("shipping_cost"));
+            s.setStatus(Shipping.Status.valueOf(rs.getString("status")));
+            if (rs.getTimestamp("shipped_at") != null) {
+                s.setShippedAt(rs.getTimestamp("shipped_at").toLocalDateTime());
+            }
+            if (rs.getTimestamp("expected_delivery_date") != null) {
+                s.setExpectedDeliveryDate(rs.getTimestamp("expected_delivery_date").toLocalDateTime());
+            }
+            if (rs.getTimestamp("delivered_at") != null) {
+                s.setDeliveredAt(rs.getTimestamp("delivered_at").toLocalDateTime());
+            }
+            if (rs.getTimestamp("created_at") != null) {
+                s.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+            }
+            if (rs.getTimestamp("updated_at") != null) {
+                s.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
+            }
+            s.setNotes(rs.getString("notes"));
+            return s;
+        });
+    }
+
+    public List<Shipping> findByCarrierName(String carrierName) {
+        String sql = "SELECT id, order_id, carrier_name, tracking_number, delivery_address, city, postal_code, country, shipping_cost, status, shipped_at, expected_delivery_date, delivered_at, notes, created_at, updated_at FROM shipments WHERE carrier_name = ? AND deleted_at IS NULL ORDER BY created_at DESC";
+        return jdbcTemplate.query(sql, ps -> ps.setString(1, carrierName), (rs, rowNum) -> {
+            Shipping s = new Shipping();
+            s.setId(rs.getLong("id"));
+            s.setOrderId(rs.getLong("order_id"));
             s.setCarrierName(rs.getString("carrier_name"));
             s.setTrackingNumber(rs.getString("tracking_number"));
             s.setDeliveryAddress(rs.getString("delivery_address"));

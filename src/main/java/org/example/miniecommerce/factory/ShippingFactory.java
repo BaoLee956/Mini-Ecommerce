@@ -13,6 +13,7 @@ public class ShippingFactory {
     public static Shipping fromCreateRequest(CreateShipmentRequest req, Order order) {
         Shipping s = new Shipping();
         s.setOrder(order);
+        s.setOrderId(order.getId());
         s.setCarrierName(req.carrierName());
         s.setTrackingNumber(req.trackingNumber());
         s.setDeliveryAddress(req.address());

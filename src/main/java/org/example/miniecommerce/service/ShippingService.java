@@ -9,6 +9,8 @@ import org.example.miniecommerce.repository.ShippingRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 public class ShippingService {
 
@@ -44,5 +46,44 @@ public class ShippingService {
         repo.update(s);
 
         return s;
+    }
+
+    public List<Shipping> getAll() {
+        return repo.findAll();
+    }
+
+    public Shipping getById(Long id) {
+        return repo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Shipping not found"));
+    }
+
+    public List<Shipping> getByOrderId(Long orderId) {
+        return repo.findByOrderId(orderId);
+    }
+
+    public List<Shipping> getByStatus(Shipping.Status status) {
+        return repo.findByStatus(status);
+    }
+
+    @Transactional
+    public void deleteById(Long id) {
+        Shipping shipping = getById(id);
+        repo.deleteById(id);
+    }
+
+    public int count() {
+        return repo.count();
+    }
+
+    public int countByStatus(Shipping.Status status) {
+        return repo.countByStatus(status);
+    }
+
+    public List<Shipping> getAllPaginated(int page, int size) {
+        return repo.findAllPaginated(page, size);
+    }
+
+    public List<Shipping> getByCarrierName(String carrierName) {
+        return repo.findByCarrierName(carrierName);
     }
 }
