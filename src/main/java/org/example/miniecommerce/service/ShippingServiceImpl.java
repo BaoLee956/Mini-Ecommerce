@@ -29,6 +29,7 @@ public class ShippingServiceImpl implements ShippingService {
         Shipping s = ShippingFactory.fromCreateRequest(req, order);
         // Cập nhật giá phí lên order
         orderService.addFee(req.orderId(), OrderDecoratorName.SHIPPING, req.shippingCost());
+        orderService.updateStatus(order.getId(), OrderStatus.PENDING_PAYMENT);
         repo.save(s);
 
         // Sau khi save, query lại để lấy Shipping mới nhất

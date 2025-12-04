@@ -56,6 +56,7 @@ public class ShippingRepository {
         List<Shipping> results = jdbcTemplate.query(sql, ps -> ps.setLong(1, id), (rs, rowNum) -> {
             Shipping s = new Shipping();
             s.setId(rs.getLong("id"));
+            s.setOrderId(rs.getLong("order_id"));
             s.setCarrierName(rs.getString("carrier_name"));
             s.setTrackingNumber(rs.getString("tracking_number"));
             s.setDeliveryAddress(rs.getString("delivery_address"));
@@ -90,6 +91,7 @@ public class ShippingRepository {
         return jdbcTemplate.query(sql, ps -> ps.setLong(1, orderId), (rs, rowNum) -> {
             Shipping s = new Shipping();
             s.setId(rs.getLong("id"));
+            s.setOrderId(rs.getLong("order_id"));
             s.setCarrierName(rs.getString("carrier_name"));
             s.setTrackingNumber(rs.getString("tracking_number"));
             s.setDeliveryAddress(rs.getString("delivery_address"));

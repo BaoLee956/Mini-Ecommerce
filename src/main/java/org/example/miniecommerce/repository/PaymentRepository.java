@@ -43,6 +43,7 @@ public class PaymentRepository {
         List<Payment> results = jdbcTemplate.query(sql, ps -> ps.setLong(1, id), (rs, rowNum) -> {
             Payment p = new Payment();
             p.setId(rs.getLong("id"));
+            p.setOrderId(rs.getLong("order_id"));
             p.setAmount(rs.getBigDecimal("amount"));
             p.setPaymentMethod(rs.getString("payment_method"));
             p.setStatus(Payment.Status.valueOf(rs.getString("status")));
@@ -65,6 +66,7 @@ public class PaymentRepository {
         return jdbcTemplate.query(sql, ps -> ps.setLong(1, orderId), (rs, rowNum) -> {
             Payment p = new Payment();
             p.setId(rs.getLong("id"));
+            p.setOrderId(rs.getLong("order_id"));
             p.setAmount(rs.getBigDecimal("amount"));
             p.setPaymentMethod(rs.getString("payment_method"));
             p.setStatus(Payment.Status.valueOf(rs.getString("status")));
