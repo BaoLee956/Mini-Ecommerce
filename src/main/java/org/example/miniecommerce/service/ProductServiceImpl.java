@@ -1,6 +1,7 @@
 package org.example.miniecommerce.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.miniecommerce.dto.PageResponse;
 import org.example.miniecommerce.dto.product.CreateProductRequest;
 import org.example.miniecommerce.dto.product.ProductResponse;
 import org.example.miniecommerce.dto.product.UpdateProductRequest;
@@ -15,6 +16,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
@@ -24,8 +27,9 @@ public class ProductServiceImpl implements ProductService {
     private final CategoryRepository categoryRepository;
 
     @Override
-    public Page<ProductResponse> list(String keyword, Long categoryId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+    public PageResponse<ProductResponse> list(String keyword, Long categoryId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt")
+                .descending());
         Page<Product> products;
 
         if (keyword != null && !keyword.isBlank()) {
@@ -36,7 +40,11 @@ public class ProductServiceImpl implements ProductService {
             products = productRepository.findAll(pageable);
         }
 
-        return products.map(ProductFactory::toResponse);
+        List<ProductResponse> content = products.map(ProductFactory::toResponse)
+                .getContent();
+
+        return new PageResponse<>(content, products.getNumber(), products.getSize(), products.getTotalElements(),
+                products.getTotalPages(), products.isFirst(), products.isLast(), products.isEmpty());
     }
 
     @Override
@@ -62,6 +70,17 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new NoSuchElementException("Category not found"));
         ProductFactory.updateProduct(product, req, category);
         return ProductFactory.toResponse(productRepository.update(product));
+    }
+
+    @Override
+    public List<ProductResponse> findAllByIds(List<Long> ids) {
+        List<ProductResponse> products = new ArrayList<>();
+        ids.forEach(id -> {
+            Product product = productRepository.findById(id)
+                    .orElseThrow(() -> new NoSuchElementException("Product not found"));
+            products.add(ProductFactory.toResponse(product));
+        });
+        return products;
     }
 
     @Override

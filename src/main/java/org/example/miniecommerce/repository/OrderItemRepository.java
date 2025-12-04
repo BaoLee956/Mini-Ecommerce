@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface OrderItemRepository {
-    Optional<OrderItem> findById(Long id);
+    Optional<OrderItem> findByOrderIdAndProductId(Long orderId, Long productId);
 
     List<OrderItem> findAll();
 
@@ -14,5 +14,5 @@ public interface OrderItemRepository {
 
     void save(OrderItem orderItem);
 
-    void deleteById(Long id);
+    void deleteByOrderIdAndProductId(Long orderId, Long productId);
 }

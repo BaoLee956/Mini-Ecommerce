@@ -1,5 +1,5 @@
 package org.example.miniecommerce.entity;
 
 public enum OrderStatus {
-    PENDING, PAID, SHIPPED, DELIVERED, COMPLETED, CANCELLED
+    CREATED, PENDING_PAYMENT, PENDING_SHIPMENT, COMPLETED, CANCELLED
 }

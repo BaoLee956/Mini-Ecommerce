@@ -22,6 +22,9 @@ public class Shipping extends BaseEntity {
     @JoinColumn(name = "order_id")
     private Order order;
 
+    @Column(name = "order_id", insertable = false, updatable = false)
+    private Long orderId;
+
     @Column(name = "carrier_name", nullable = false)
     private String carrierName;
 
@@ -51,15 +54,9 @@ public class Shipping extends BaseEntity {
     @Column(name = "delivered_at")
     private LocalDateTime deliveredAt;
 
+
     private String notes;
 
     public enum Status {PROCESSING, SHIPPED, IN_TRANSIT, DELIVERED, LOST, DAMAGED, CANCELLED}
-    @Transient
-    public Long getOrderId() {
-        if (order == null) {
-            return null;
-        }
-        return order.getId();
-    }
 
 }

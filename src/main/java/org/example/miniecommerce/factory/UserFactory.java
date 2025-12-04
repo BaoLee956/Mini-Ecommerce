@@ -46,7 +46,13 @@ public class UserFactory {
   
 
   public UserResponse toUserResponse(User user) {
-    String roleName = userRoleRepository.getRoleNameByUserEmail(user.getEmail());
+    String roleName = null;
+    try {
+      roleName = userRoleRepository.getRoleNameByUserEmail(user.getEmail());
+  } catch (Exception e) {
+      // Handle case where user has no role assigned yet
+      roleName = "USER"; // or null, depending on your business logic
+  }
     return UserResponse.builder()
         .id(user.getId())
         .name(user.getName())

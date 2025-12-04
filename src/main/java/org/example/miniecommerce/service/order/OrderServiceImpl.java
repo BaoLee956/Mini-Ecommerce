@@ -1,22 +1,20 @@
-package org.example.miniecommerce.service;
+package org.example.miniecommerce.service.order;
 
 import lombok.RequiredArgsConstructor;
-import org.example.miniecommerce.factory.OrderFactory;
-import org.example.miniecommerce.dto.order.CreateOrderRequest;
-import org.example.miniecommerce.dto.order.DeleteResponse;
-import org.example.miniecommerce.dto.order.OrderItemDto;
-import org.example.miniecommerce.dto.order.OrderResponse;
-import org.example.miniecommerce.dto.order.OrderStatusResponse;
-import org.example.miniecommerce.dto.order.UpdateOrderStatusRequest;
+import org.example.miniecommerce.dto.order.*;
 import org.example.miniecommerce.entity.Order;
 import org.example.miniecommerce.entity.OrderStatus;
 import org.example.miniecommerce.repository.OrderRepository;
-
+import org.example.miniecommerce.service.order.decorator.OrderDecoratorManager;
+import org.example.miniecommerce.service.order.decorator.OrderDecoratorName;
+import org.example.miniecommerce.service.order.template.StandardCreateOrderProcessor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -24,14 +22,15 @@ import java.util.List;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
-    private final OrderFactory orderFactory;
+    private final StandardCreateOrderProcessor orderProcessor;
+    private final OrderDecoratorManager decoratorManager;
 
 
-    // POST /api/orders
+    // POST /api/orders - Enhanced with Template Method Pattern
     @Override
     public OrderResponse createOrder(Long userId, CreateOrderRequest request) {
-        Order order = orderFactory.createOrder(userId, request.items());
-        order = orderRepository.save(order);
+        // Use Template Method Pattern for order processing
+        Order order = orderProcessor.processOrder(userId, request);
         return mapToResponse(order);
     }
 
@@ -56,7 +55,15 @@ public class OrderServiceImpl implements OrderService {
         return mapToResponse(order);
     }
 
-    // PUT /api/orders/{id}/status
+    @Override
+    public OrderResponse getOrderById(Long id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        return mapToResponse(order);
+    }
+
+    // PUT /api/orders/{id}/status - Enhanced with State Pattern
     @Override
     public OrderStatusResponse updateStatus(Long id, UpdateOrderStatusRequest request, Long userId) {
         Order order = orderRepository.findById(id)
@@ -66,16 +73,18 @@ public class OrderServiceImpl implements OrderService {
                 .equals(userId)) {
             throw new RuntimeException("Unauthorized");
         }
-
         order.setStatus(request.status());
-        order = orderRepository.save(order);
-
-        // Gọi Payment & Shipping Service (Event-driven)
-        if (request.status() == OrderStatus.PAID) {
-            // Logic xử lý khi thanh toán thành công (nếu cần)
-        }
-
+        orderRepository.save(order);
         return new OrderStatusResponse(order.getId(), order.getStatus(), LocalDateTime.now());
+    }
+
+    @Override
+    public void updateStatus(Long id, OrderStatus status) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        order.setStatus(status);
+        orderRepository.save(order);
     }
 
     // DELETE /api/orders/{id}
@@ -89,13 +98,27 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("Unauthorized");
         }
 
-        if (order.getStatus() != OrderStatus.PENDING) {
-            throw new IllegalStateException("Only pending orders can be deleted");
+        if (order.getStatus() != OrderStatus.CREATED) {
+            throw new IllegalStateException("Only created orders can be deleted");
         }
 
         orderRepository.deleteById(id);
         return new DeleteResponse("Order deleted");
     }
+
+    @Override
+    public void addFee(Long orderId, OrderDecoratorName name, BigDecimal fee) {
+
+        Optional<Order> orderOpt = orderRepository.findById(orderId);
+        if (orderOpt.isEmpty()) {
+            throw new IllegalArgumentException("Order not found");
+        }
+
+        Order order = decoratorManager.applyDecorator(orderOpt.get(), name, fee);
+
+        orderRepository.save(order);
+    }
+
 
     private OrderResponse mapToResponse(Order order) {
         List<OrderItemDto> items = order.getItems()

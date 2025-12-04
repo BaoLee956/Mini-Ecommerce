@@ -66,9 +66,9 @@ CREATE TABLE products
     id             BIGINT AUTO_INCREMENT PRIMARY KEY,
     name           VARCHAR(255)   NOT NULL,
     description    TEXT,
-    price          DECIMAL(12, 2) NOT NULL,
-    stock_quantity INT            NOT NULL,
-    category_id    BIGINT,
+    price          DECIMAL(12, 2) DEFAULT 0 NOT NULL,
+    stock_quantity INT            DEFAULT 0 NOT NULL,
+    category_id    BIGINT NOT NULL,
     created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at     DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at     DATETIME DEFAULT NULL,
@@ -79,9 +79,9 @@ CREATE TABLE products
 CREATE TABLE orders
 (
     id           BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id      BIGINT,
+    user_id      BIGINT NOT NULL,
     total_amount DECIMAL(12, 2)                                                      NOT NULL,
-    status       ENUM ('PENDING','PAID','SHIPPED','DELIVERED','COMPLETED','CANCELLED') NOT NULL DEFAULT 'PENDING',
+    status       ENUM ('CREATED','PENDING_SHIPMENT','PENDING_PAYMENT','COMPLETED','CANCELLED') NOT NULL DEFAULT 'CREATED',
     created_at   DATETIME                                                                     DEFAULT CURRENT_TIMESTAMP,
     updated_at   DATETIME                                                                     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at   DATETIME                                                                     DEFAULT NULL,
@@ -91,14 +91,14 @@ CREATE TABLE orders
 -- ORDER ITEMS
 CREATE TABLE order_items
 (
-    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
-    order_id   BIGINT,
-    product_id BIGINT,
-    quantity   INT            NOT NULL,
+    order_id   BIGINT NOT NULL,
+    product_id BIGINT NOT NULL,
+    quantity   INT   DEFAULT 1         NOT NULL,
     unit_price DECIMAL(12, 2) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME DEFAULT NULL,
+    PRIMARY KEY (order_id, product_id),
     CONSTRAINT fk_orderitem_order FOREIGN KEY (order_id) REFERENCES orders (id),
     CONSTRAINT fk_orderitem_product FOREIGN KEY (product_id) REFERENCES products (id)
 );
@@ -111,8 +111,6 @@ CREATE TABLE payments
     amount          DECIMAL(12, 2)                          NOT NULL,
     payment_method  VARCHAR(100)                            NOT NULL,
     status          ENUM ('PENDING','SUCCESS','FAILED')     NOT NULL DEFAULT 'PENDING',
-    failure_reason  VARCHAR(255)                                     DEFAULT NULL,
-    transaction_id  VARCHAR(100)                                     DEFAULT NULL,
     paid_at         DATETIME                                         DEFAULT NULL,
     created_at      DATETIME                                         DEFAULT CURRENT_TIMESTAMP,
     updated_at      DATETIME                                         DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -225,65 +223,65 @@ VALUES
 -- Current month (November/December 2024)
 (2, 95000, 'COMPLETED', DATE_SUB(NOW(), INTERVAL 1 DAY)),
 (3, 220000, 'COMPLETED', DATE_SUB(NOW(), INTERVAL 2 DAY)),
-(4, 155000, 'PENDING', DATE_SUB(NOW(), INTERVAL 1 DAY));
+(4, 155000, 'CREATED', DATE_SUB(NOW(), INTERVAL 1 DAY));
 
 -- ORDER ITEMS (Fixed NULL values and additional items)
-INSERT INTO order_items (order_id, product_id, quantity, unit_price, created_at)
+INSERT INTO order_items (order_id, product_id, quantity, unit_price)
 VALUES
 -- Order 1 (Jan)
-(1, 1, 2, 100000, '2024-01-15'),
+(1, 1, 2, 100000),
 -- Order 2 (Jan)
-(2, 3, 2, 50000, '2024-01-20'),
-(2, 5, 1, 30000, '2024-01-20'),
+(2, 3, 2, 50000),
+(2, 5, 1, 30000),
 -- Order 3 (Apr)
-(3, 1, 1, 100000, '2024-04-10'),
-(3, 2, 1, 150000, '2024-04-10'),
+(3, 1, 1, 100000),
+(3, 2, 1, 150000),
 -- Order 4 (Apr)
-(4, 4, 2, 80000, '2024-04-25'),
-(4, 7, 1, 35000, '2024-04-25'),
+(4, 4, 2, 80000),
+(4, 7, 1, 35000),
 -- Order 5 (Jul)
-(5, 6, 1, 75000, '2024-07-08'),
-(5, 3, 2.5, 50000, '2024-07-08'),
+(5, 6, 1, 75000),
+(5, 3, 2.5, 50000),
 -- Order 6 (Jul)
-(6, 2, 2, 150000, '2024-07-22'),
-(6, 4, 1, 80000, '2024-07-22'),
+(6, 2, 2, 150000),
+(6, 4, 1, 80000),
 -- Order 7 (Oct)
-(7, 1, 2, 100000, '2024-10-05'),
-(7, 7, 1, 35000, '2024-10-05'),
+(7, 1, 2, 100000),
+(7, 7, 1, 35000),
 -- Order 8 (Oct)
-(8, 5, 2, 20000, '2024-10-18'),
-(8, 6, 1, 75000, '2024-10-18'),
+(8, 5, 2, 20000),
+(8, 6, 1, 75000),
 -- Order 9 (Nov/Dec - Recent)
-(9, 1, 1, 75000, DATE_SUB(NOW(), INTERVAL 1 DAY)),
-(9, 3, 1, 20000, DATE_SUB(NOW(), INTERVAL 1 DAY)),
+(9, 1, 1, 75000),
+(9, 3, 1, 20000),
 -- Order 10 (Nov/Dec - Recent)
-(10, 2, 1, 150000, DATE_SUB(NOW(), INTERVAL 2 DAY)),
-(10, 4, 0.5, 40000, DATE_SUB(NOW(), INTERVAL 2 DAY)),
+(10, 2, 1, 150000),
+(10, 4, 0.5, 40000),
 -- Order 11 (Pending - not enough items)
-(11, 1, 1, 100000, DATE_SUB(NOW(), INTERVAL 1 DAY));
+(11, 1, 1, 100000);
 
 -- PAYMENTS (with dates matching orders and various payment methods/statuses)
-INSERT INTO payments (order_id, amount, payment_method, status, transaction_id, paid_at, created_at)
+INSERT INTO payments (order_id, amount, payment_method, status, paid_at, created_at)
 VALUES
 -- January 2024
-(1, 200000, 'CREDIT_CARD', 'SUCCESS', 'TXN001', '2024-01-15', '2024-01-15'),
-(2, 150000, 'BANK_TRANSFER', 'SUCCESS', 'TXN002', '2024-01-20', '2024-01-20'),
+(1, 200000, 'CREDIT_CARD', 'SUCCESS', '2024-01-15', '2024-01-15'),
+(2, 150000, 'BANK_TRANSFER', 'SUCCESS', '2024-01-20', '2024-01-20'),
 -- April 2024
-(3, 180000, 'E_WALLET', 'SUCCESS', 'TXN003', '2024-04-10', '2024-04-10'),
-(4, 220000, 'CREDIT_CARD', 'SUCCESS', 'TXN004', '2024-04-25', '2024-04-25'),
+(3, 180000, 'E_WALLET', 'SUCCESS', '2024-04-10', '2024-04-10'),
+(4, 220000, 'CREDIT_CARD', 'SUCCESS', '2024-04-25', '2024-04-25'),
 -- July 2024
-(5, 195000, 'BANK_TRANSFER', 'SUCCESS', 'TXN005', '2024-07-08', '2024-07-08'),
-(6, 310000, 'E_WALLET', 'SUCCESS', 'TXN006', '2024-07-22', '2024-07-22'),
+(5, 195000, 'BANK_TRANSFER', 'SUCCESS', '2024-07-08', '2024-07-08'),
+(6, 310000, 'E_WALLET', 'SUCCESS', '2024-07-22', '2024-07-22'),
 -- October 2024
-(7, 250000, 'CREDIT_CARD', 'SUCCESS', 'TXN007', '2024-10-05', '2024-10-05'),
-(8, 165000, 'CASH', 'SUCCESS', 'TXN008', '2024-10-18', '2024-10-18'),
+(7, 250000, 'CREDIT_CARD', 'SUCCESS', '2024-10-05', '2024-10-05'),
+(8, 165000, 'CASH', 'SUCCESS', '2024-10-18', '2024-10-18'),
 -- Recent (Current month)
-(9, 95000, 'CREDIT_CARD', 'SUCCESS', 'TXN009', DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY)),
-(10, 220000, 'BANK_TRANSFER', 'SUCCESS', 'TXN010', DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 2 DAY)),
+(9, 95000, 'CREDIT_CARD', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 1 DAY)),
+(10, 220000, 'BANK_TRANSFER', 'SUCCESS', DATE_SUB(NOW(), INTERVAL 2 DAY), DATE_SUB(NOW(), INTERVAL 2 DAY)),
 -- Failed payment
-(11, 155000, 'CREDIT_CARD', 'FAILED', NULL, NULL, DATE_SUB(NOW(), INTERVAL 1 DAY)),
+(11, 155000, 'CREDIT_CARD', 'FAILED', NULL, DATE_SUB(NOW(), INTERVAL 1 DAY)),
 -- Additional failed payment for analytics
-(1, 200000, 'E_WALLET', 'FAILED', NULL, NULL, '2024-01-14');
+(1, 200000, 'E_WALLET', 'FAILED', NULL, '2024-01-14');
 
 -- SHIPMENTS (with dates matching orders, various carriers, and statuses)
 INSERT INTO shipments (order_id, carrier_name, tracking_number, delivery_address, city, postal_code, country, shipping_cost, status, shipped_at, expected_delivery_date, delivered_at, created_at)
