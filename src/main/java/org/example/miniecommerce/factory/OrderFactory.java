@@ -7,8 +7,8 @@ import org.example.miniecommerce.dto.product.ProductResponse;
 import org.example.miniecommerce.entity.Order;
 import org.example.miniecommerce.entity.OrderItem;
 import org.example.miniecommerce.entity.OrderStatus;
+import org.example.miniecommerce.service.order.state.CreatedState;
 import org.example.miniecommerce.service.ProductService;
-import org.example.miniecommerce.service.UserService;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -98,6 +98,8 @@ public class OrderFactory {
         }
 
         order.setTotalAmount(total);
+        // Khởi tạo state ban đầu
+        order.setState(new CreatedState());
         log.info("Order created successfully with total amount: {}", total);
         return order;
     }

@@ -92,12 +92,52 @@ public class OrderServiceImpl implements OrderService {
         return new OrderStatusResponse(order.getId(), order.getStatus(), LocalDateTime.now());
     }
 
+    // State pattern methods - thay thế cho updateStatus(Long id, OrderStatus status)
     @Override
-    public void updateStatus(Long id, OrderStatus status) {
-        Order order = orderRepository.findById(id)
+    public void handlePaymentSuccess(Long orderId) {
+        Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
+        order.handlePaymentSuccess();
+        orderRepository.save(order);
+    }
 
-        order.setStatus(status);
+    @Override
+    public void handleShipmentCreated(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        order.handleShipmentCreated();
+        orderRepository.save(order);
+    }
+
+    @Override
+    public void handleShipmentStarted(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        order.handleShipmentStarted();
+        orderRepository.save(order);
+    }
+
+    @Override
+    public void handleShipmentDelivered(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        order.handleShipmentDelivered();
+        orderRepository.save(order);
+    }
+
+    @Override
+    public void handlePaymentFailed(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        order.handlePaymentFailed();
+        orderRepository.save(order);
+    }
+
+    @Override
+    public void handleCancel(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        order.handleCancel();
         orderRepository.save(order);
     }
 

@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.example.miniecommerce.dto.shipping.CreateShipmentRequest;
 import org.example.miniecommerce.dto.shipping.UpdateShipmentRequest;
 import org.example.miniecommerce.entity.Order;
-import org.example.miniecommerce.entity.OrderStatus;
 import org.example.miniecommerce.entity.Shipping;
 import org.example.miniecommerce.factory.ShippingFactory;
 import org.example.miniecommerce.repository.ShippingRepository;
@@ -29,7 +28,7 @@ public class ShippingServiceImpl implements ShippingService {
         Shipping s = ShippingFactory.fromCreateRequest(req, order);
         // Cập nhật giá phí lên order
         orderService.addFee(req.orderId(), OrderDecoratorName.SHIPPING, req.shippingCost());
-        orderService.updateStatus(order.getId(), OrderStatus.PENDING_PAYMENT);
+        orderService.handleShipmentCreated(order.getId());
         repo.save(s);
 
         // Sau khi save, query lại để lấy Shipping mới nhất
@@ -47,8 +46,16 @@ public class ShippingServiceImpl implements ShippingService {
 
         ShippingFactory.applyUpdate(s, req);
 
-        if (s.getStatus() == Shipping.Status.DELIVERED) {
-            orderService.updateStatus(s.getOrderId(), OrderStatus.COMPLETED);
+        switch (s.getStatus()) {
+            case IN_TRANSIT:
+                orderService.handleShipmentStarted(s.getOrderId());
+                break;
+            case DELIVERED:
+                orderService.handleShipmentDelivered(s.getOrderId());
+                break;
+            default:
+                // No action needed for other shipping statuses
+                break;
         }
 
         repo.update(s);
