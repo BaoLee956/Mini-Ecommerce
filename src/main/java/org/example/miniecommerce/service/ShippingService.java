@@ -2,12 +2,7 @@ package org.example.miniecommerce.service;
 
 import org.example.miniecommerce.dto.shipping.CreateShipmentRequest;
 import org.example.miniecommerce.dto.shipping.UpdateShipmentRequest;
-import org.example.miniecommerce.entity.Order;
 import org.example.miniecommerce.entity.Shipping;
-import org.example.miniecommerce.factory.ShippingFactory;
-import org.example.miniecommerce.repository.ShippingRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 

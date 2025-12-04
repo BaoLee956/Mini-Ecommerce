@@ -2,12 +2,7 @@ package org.example.miniecommerce.service;
 
 import org.example.miniecommerce.dto.payment.CreatePaymentRequest;
 import org.example.miniecommerce.dto.payment.ConfirmPaymentRequest;
-import org.example.miniecommerce.entity.Order;
 import org.example.miniecommerce.entity.Payment;
-import org.example.miniecommerce.factory.PaymentFactory;
-import org.example.miniecommerce.repository.PaymentRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 

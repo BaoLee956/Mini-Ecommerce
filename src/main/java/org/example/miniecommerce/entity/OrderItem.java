@@ -27,6 +27,6 @@ public class OrderItem extends BaseEntity {
     @Column(nullable = false)
     private Integer quantity;
 
-    @Column(nullable = false)
+    @Column(name = "unit_price", nullable = false)
     private BigDecimal price;
 }
