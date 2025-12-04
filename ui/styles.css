@@ -4,10 +4,24 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* Screen Management */
+#login-screen, #main-screen {
+    display: none;
+}
+
+#login-screen.show, #main-screen.show {
+    display: block !important;
+}
+
+/* Main Screen Layout */
 #cart-section {
-    min-height: 100vh;
+    min-height: 100%;
     position: sticky;
     top: 0;
+}
+
+#products-screen, #orders-screen {
+    height: 100%;
 }
 
 .cart-item {

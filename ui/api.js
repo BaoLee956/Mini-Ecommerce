@@ -57,6 +57,10 @@ class ApiService {
         return await this.makeRequest(`${API_CONFIG.ENDPOINTS.PRODUCTS}?${params}`);
     }
 
+    static async getProduct(productId) {
+        return await this.makeRequest(`${API_CONFIG.ENDPOINTS.PRODUCTS}/${productId}`);
+    }
+
     // Order APIs
     static async createOrder(orderItems) {
         if (!currentUser || !currentUser.id) {
@@ -74,6 +78,18 @@ class ApiService {
                 'userId': currentUser.id.toString()
             },
             body: JSON.stringify(requestBody)
+        });
+    }
+
+    static async getUserOrders() {
+        if (!currentUser || !currentUser.id) {
+            throw new Error('User not authenticated');
+        }
+
+        return await this.makeRequest(`${API_CONFIG.ENDPOINTS.ORDERS}/me`, {
+            headers: {
+                'userId': currentUser.id.toString()
+            }
         });
     }
 

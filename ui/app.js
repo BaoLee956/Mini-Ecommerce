@@ -2,16 +2,32 @@
 let currentPage = 0;
 let currentKeyword = '';
 let cart = [];
+let currentScreen = 'products';
 
-// DOM Elements
+// DOM Elements - Main
+const loginScreen = document.getElementById('login-screen');
+const mainScreen = document.getElementById('main-screen');
+const loginForm = document.getElementById('login-form');
+const userName = document.getElementById('user-name');
+
+// DOM Elements - Products
 const searchInput = document.getElementById('search-input');
 const searchBtn = document.getElementById('search-btn');
 const productsGrid = document.getElementById('products-grid');
 const paginationControls = document.getElementById('pagination-controls');
 const paginationInfo = document.getElementById('pagination-info');
 const loadingSpinner = document.getElementById('loading-spinner');
+
+// DOM Elements - Cart
 const cartItems = document.getElementById('cart-items');
 const orderBtn = document.getElementById('order-btn');
+
+// DOM Elements - Orders
+const ordersContainer = document.getElementById('orders-container');
+
+// Screen Elements
+const productsScreen = document.getElementById('products-screen');
+const ordersScreen = document.getElementById('orders-screen');
 
 // Initialize Application
 document.addEventListener('DOMContentLoaded', function() {
@@ -19,43 +35,92 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeApp() {
+    // Check authentication state
+    checkAuthentication();
+
     // Set up event listeners
     setupEventListeners();
+}
 
-    // Simulate user login for demo (you can remove this in production)
-    simulateUserLogin();
+// Authentication Management
+function checkAuthentication() {
+    if (ApiService.isAuthenticated()) {
+        showMainScreen();
+        loadInitialData();
+    } else {
+        showLoginScreen();
+    }
+}
 
-    // Load initial products
-    loadProducts();
+function showLoginScreen() {
+    loginScreen.classList.add('show');
+    mainScreen.classList.remove('show');
+}
+
+function showMainScreen() {
+    loginScreen.classList.remove('show');
+    mainScreen.classList.add('show');
+
+    // Update user name in navbar
+    const user = ApiService.getCurrentUser();
+    if (user && userName) {
+        userName.textContent = user.username || 'User';
+    }
+}
+
+function showScreen(screenName) {
+    // Update navigation
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+    });
+
+    // Show selected screen
+    if (screenName === 'products') {
+        productsScreen.classList.remove('d-none');
+        ordersScreen.classList.add('d-none');
+        document.querySelector('a[onclick*="products"]').classList.add('active');
+        currentScreen = 'products';
+        loadProducts();
+    } else if (screenName === 'orders') {
+        productsScreen.classList.add('d-none');
+        ordersScreen.classList.remove('d-none');
+        document.querySelector('a[onclick*="orders"]').classList.add('active');
+        currentScreen = 'orders';
+        loadUserOrders();
+    }
+}
+
+function loadInitialData() {
+    // Load products by default
+    showScreen('products');
 }
 
 // Setup Event Listeners
 function setupEventListeners() {
+    // Login form
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
+
     // Search functionality
-    searchBtn.addEventListener('click', handleSearch);
-    searchInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            handleSearch();
-        }
-    });
+    if (searchBtn) {
+        searchBtn.addEventListener('click', handleSearch);
+    }
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleSearch();
+            }
+        });
+    }
 
     // Order button
-    orderBtn.addEventListener('click', handleOrder);
+    if (orderBtn) {
+        orderBtn.addEventListener('click', handleOrder);
+    }
 }
 
-// User Authentication Simulation
-function simulateUserLogin() {
-    // Simulate a logged-in user for demo purposes
-    // In a real app, this would come from login flow
-    const demoUser = {
-        id: 1,
-        username: 'demo_user',
-        email: 'demo@example.com'
-    };
-
-    ApiService.setCurrentUser(demoUser);
-    console.log('Demo user logged in:', demoUser);
-}
+// User Authentication functions are now handled in handleLogin()
 
 // Product Search and Display
 async function handleSearch() {
@@ -303,3 +368,177 @@ function showSuccess(message) {
     // Simple alert for now, can be replaced with toast notifications
     alert('Thành công: ' + message);
 }
+
+// Login/Logout Functions
+async function handleLogin(e) {
+    e.preventDefault();
+
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    if (!username || !password) {
+        showError('Vui lòng nhập đầy đủ thông tin đăng nhập');
+        return;
+    }
+
+    try {
+        // For demo purposes, simulate login
+        // In real app, this would call ApiService.login()
+        const demoUser = {
+            id: 1,
+            username: username,
+            email: username + '@example.com'
+        };
+
+        ApiService.setCurrentUser(demoUser);
+
+        showSuccess('Đăng nhập thành công!');
+        showMainScreen();
+        loadInitialData();
+
+    } catch (error) {
+        console.error('Login error:', error);
+        showError('Đăng nhập thất bại: ' + error.message);
+    }
+}
+
+function logout() {
+    if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+        ApiService.logout();
+        cart = []; // Clear cart
+        currentPage = 0;
+        currentKeyword = '';
+        showLoginScreen();
+        showSuccess('Đã đăng xuất thành công');
+    }
+}
+
+// Order History Functions
+async function loadUserOrders() {
+    if (!ApiService.isAuthenticated()) {
+        showError('Vui lòng đăng nhập để xem đơn hàng');
+        return;
+    }
+
+    try {
+        const ordersContainer = document.getElementById('orders-container');
+        ordersContainer.innerHTML = '<div class="text-center"><div class="spinner-border text-primary"></div><p class="mt-2">Đang tải đơn hàng...</p></div>';
+
+        const orders = await ApiService.getUserOrders();
+
+        // Enrich orders with product names
+        const enrichedOrders = await Promise.all(orders.map(async (order) => {
+            const enrichedItems = await Promise.all(order.items.map(async (item) => {
+                try {
+                    const product = await ApiService.getProduct(item.productId);
+                    return {
+                        ...item,
+                        productName: product.name
+                    };
+                } catch (error) {
+                    console.warn('Could not load product', item.productId, error);
+                    return {
+                        ...item,
+                        productName: `Product ${item.productId}`
+                    };
+                }
+            }));
+
+            return {
+                ...order,
+                items: enrichedItems
+            };
+        }));
+
+        displayOrders(enrichedOrders);
+
+    } catch (error) {
+        console.error('Error loading orders:', error);
+        showError('Không thể tải đơn hàng: ' + error.message);
+
+        // Show empty state on error
+        const ordersContainer = document.getElementById('orders-container');
+        ordersContainer.innerHTML = `
+            <div class="text-center text-muted">
+                <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                <h5>Không thể tải đơn hàng</h5>
+                <p>Vui lòng thử lại sau.</p>
+            </div>
+        `;
+    }
+}
+
+function displayOrders(orders) {
+    const ordersContainer = document.getElementById('orders-container');
+    if (!ordersContainer) return;
+
+    if (!orders || orders.length === 0) {
+        ordersContainer.innerHTML = `
+            <div class="text-center text-muted">
+                <i class="fas fa-shopping-cart fa-3x mb-3"></i>
+                <h5>Bạn chưa có đơn hàng nào</h5>
+                <p>Hãy bắt đầu mua sắm để tạo đơn hàng đầu tiên!</p>
+                <button class="btn btn-primary" onclick="showScreen('products')">
+                    <i class="fas fa-box"></i> Xem sản phẩm
+                </button>
+            </div>
+        `;
+        return;
+    }
+
+    ordersContainer.innerHTML = orders.map(order => `
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="fas fa-receipt"></i> Đơn hàng #${order.id}
+                </h6>
+                <span class="badge bg-${getStatusColor(order.status)}">${getStatusText(order.status)}</span>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h6>Sản phẩm:</h6>
+                        <ul class="list-unstyled">
+                            ${order.items.map(item => `
+                                <li>${item.productName || `Product ${item.productId}`} x${item.quantity} - ₫${parseFloat(item.price).toLocaleString('vi-VN')}</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <p class="mb-1"><strong>Tổng tiền:</strong></p>
+                        <h5 class="text-primary">₫${parseFloat(order.totalAmount).toLocaleString('vi-VN')}</h5>
+                        <small class="text-muted">User ID: ${order.userId}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function getStatusColor(status) {
+    switch (status) {
+        case 'CREATED': return 'secondary';
+        case 'PENDING_PAYMENT': return 'warning';
+        case 'PENDING_SHIPMENT': return 'info';
+        case 'COMPLETED': return 'success';
+        case 'CANCELLED': return 'danger';
+        default: return 'secondary';
+    }
+}
+
+function getStatusText(status) {
+    switch (status) {
+        case 'CREATED': return 'Đã tạo';
+        case 'PENDING_PAYMENT': return 'Chờ thanh toán';
+        case 'PENDING_SHIPMENT': return 'Chờ giao hàng';
+        case 'COMPLETED': return 'Hoàn thành';
+        case 'CANCELLED': return 'Đã hủy';
+        default: return status;
+    }
+}
+
+// Removed formatDate function as API doesn't return created date
+
+// Global functions for onclick handlers
+window.showScreen = showScreen;
+window.logout = logout;
