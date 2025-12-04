@@ -169,6 +169,26 @@ public class ProductRepository {
         }
     }
 
+    // 8. Cập nhật số lượng tồn kho
+    public void updateStockQuantity(Long productId, Integer newStockQuantity) {
+        String sql = """
+                UPDATE products
+                SET stock_quantity = :stock,
+                    updated_at = :now
+                WHERE id = :id AND deleted_at IS NULL
+                """;
+
+        int updated = jdbc.update(sql, Map.of(
+                "id", productId,
+                "stock", newStockQuantity,
+                "now", LocalDateTime.now()
+        ));
+
+        if (updated == 0) {
+            throw new RuntimeException("Product not found or already deleted");
+        }
+    }
+
     // === Count methods ===
     private long countActive() {
         return jdbc.getJdbcTemplate().queryForObject("SELECT COUNT(*) FROM products WHERE deleted_at IS NULL", Long.class);
