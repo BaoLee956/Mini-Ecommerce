@@ -1,4 +1,4 @@
-package org.example.miniecommerce.service;
+package org.example.miniecommerce.service.order;
 
 import lombok.RequiredArgsConstructor;
 import org.example.miniecommerce.dto.order.*;

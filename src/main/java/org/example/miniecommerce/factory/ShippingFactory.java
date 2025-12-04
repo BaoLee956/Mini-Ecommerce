@@ -3,7 +3,6 @@ package org.example.miniecommerce.factory;
 import org.example.miniecommerce.dto.shipping.CreateShipmentRequest;
 import org.example.miniecommerce.dto.shipping.UpdateShipmentRequest;
 import org.example.miniecommerce.entity.Order;
-import org.example.miniecommerce.entity.OrderStatus;
 import org.example.miniecommerce.entity.Shipping;
 
 import java.time.LocalDateTime;
@@ -39,13 +38,6 @@ public class ShippingFactory {
                 s.setDeliveredAt(LocalDateTime.now());
             }
 
-            if (s.getOrder() != null) {
-                if (newStatus == Shipping.Status.SHIPPED || newStatus == Shipping.Status.IN_TRANSIT) {
-                    s.getOrder().setStatus(OrderStatus.SHIPPED);
-                } else if (newStatus == Shipping.Status.DELIVERED) {
-                    s.getOrder().setStatus(OrderStatus.DELIVERED);
-                }
-            }
         }
         if (req.address() != null) s.setDeliveryAddress(req.address());
         if (req.city() != null) s.setCity(req.city());

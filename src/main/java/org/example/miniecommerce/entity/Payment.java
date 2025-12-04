@@ -16,8 +16,11 @@ import java.time.LocalDateTime;
 @SQLDelete(sql = "UPDATE payments SET deleted_at = NOW() WHERE id=?")
 @SQLRestriction("deleted_at IS NULL")
 public class Payment extends BaseEntity {
+    @Column(name = "order_id", nullable = false)
+    private Long orderId;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id")
+    @JoinColumn(name = "order_id", insertable = false, updatable = false)
     private Order order;
 
     @Column(nullable = false, precision = 12, scale = 2)
@@ -41,12 +44,10 @@ public class Payment extends BaseEntity {
 
     public enum Status {PENDING, SUCCESS, FAILED}
     
-    @Transient
+    // No longer @Transient since orderId is now a persistent field
+    // But keep the method for backward compatibility
     public Long getOrderId() {
-        if (order == null) {
-            return null;
-        }
-        return order.getId();
+        return orderId != null ? orderId : (order != null ? order.getId() : null);
     }
 
 }

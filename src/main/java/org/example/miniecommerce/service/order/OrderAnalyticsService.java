@@ -1,4 +1,4 @@
-package org.example.miniecommerce.service;
+package org.example.miniecommerce.service.order;
 
 import org.example.miniecommerce.dto.order.*;
 import java.time.LocalDate;

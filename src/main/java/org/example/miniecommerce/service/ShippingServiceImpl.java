@@ -1,31 +1,34 @@
 package org.example.miniecommerce.service;
 
+import lombok.RequiredArgsConstructor;
 import org.example.miniecommerce.dto.shipping.CreateShipmentRequest;
 import org.example.miniecommerce.dto.shipping.UpdateShipmentRequest;
 import org.example.miniecommerce.entity.Order;
+import org.example.miniecommerce.entity.OrderStatus;
 import org.example.miniecommerce.entity.Shipping;
 import org.example.miniecommerce.factory.ShippingFactory;
 import org.example.miniecommerce.repository.ShippingRepository;
+import org.example.miniecommerce.service.order.OrderService;
+import org.example.miniecommerce.service.order.decorator.OrderDecoratorName;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class ShippingServiceImpl implements ShippingService {
 
     private final ShippingRepository repo;
     private final OrderLookupService orderLookup;
+    private final OrderService orderService;
 
-    public ShippingServiceImpl(ShippingRepository repo, OrderLookupService orderLookup) {
-        this.repo = repo;
-        this.orderLookup = orderLookup;
-    }
 
     @Override
     @Transactional
     public Shipping create(CreateShipmentRequest req) {
         Order order = orderLookup.findByIdOrThrow(req.orderId());
         Shipping s = ShippingFactory.fromCreateRequest(req, order);
-
+        // Cập nhật giá phí lên order
+        orderService.addFee(req.orderId(), OrderDecoratorName.SHIPPING, req.shippingCost());
         repo.save(s);
 
         // Sau khi save, query lại để lấy Shipping mới nhất
@@ -42,6 +45,10 @@ public class ShippingServiceImpl implements ShippingService {
                 .orElseThrow(() -> new IllegalArgumentException("Shipping not found"));
 
         ShippingFactory.applyUpdate(s, req);
+
+        if (s.getStatus() == Shipping.Status.DELIVERED) {
+            orderService.updateStatus(s.getOrderId(), OrderStatus.COMPLETED);
+        }
 
         repo.update(s);
 

@@ -1,11 +1,11 @@
 package org.example.miniecommerce.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.example.miniecommerce.dto.PageResponse;
 import org.example.miniecommerce.dto.product.CreateProductRequest;
 import org.example.miniecommerce.dto.product.ProductResponse;
 import org.example.miniecommerce.dto.product.UpdateProductRequest;
 import org.example.miniecommerce.service.ProductService;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -20,7 +20,7 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping
-    public ResponseEntity<Page<ProductResponse>> list(
+    public ResponseEntity<PageResponse<ProductResponse>> list(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String keyword,

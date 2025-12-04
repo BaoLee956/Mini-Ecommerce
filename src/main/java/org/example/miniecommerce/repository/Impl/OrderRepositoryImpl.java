@@ -6,6 +6,7 @@ import org.example.miniecommerce.dto.order.MonthlyRevenueDto;
 import org.example.miniecommerce.dto.order.OrderDetailWithProductDto;
 import org.example.miniecommerce.dto.order.TopProductDto;
 import org.example.miniecommerce.entity.Order;
+import org.example.miniecommerce.entity.OrderItem;
 import org.example.miniecommerce.entity.OrderStatus;
 import org.example.miniecommerce.repository.OrderRepository;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -50,6 +51,28 @@ public class OrderRepositoryImpl implements OrderRepository {
         }
     };
 
+    private final RowMapper<OrderItem> orderItemRowMapper = new RowMapper<>() {
+        @Override
+        public OrderItem mapRow(ResultSet rs, int rowNum) throws SQLException {
+            OrderItem item = new OrderItem();
+            item.setOrderId(rs.getLong("order_id"));
+            item.setProductId(rs.getLong("product_id"));
+            item.setQuantity(rs.getInt("quantity"));
+            item.setPrice(rs.getBigDecimal("unit_price"));
+            item.setCreatedAt(rs.getTimestamp("created_at")
+                    .toLocalDateTime());
+            item.setUpdatedAt(rs.getTimestamp("updated_at")
+                    .toLocalDateTime());
+
+            java.sql.Timestamp deletedAtTimestamp = rs.getTimestamp("deleted_at");
+            if (deletedAtTimestamp != null) {
+                item.setDeletedAt(deletedAtTimestamp.toLocalDateTime());
+            }
+
+            return item;
+        }
+    };
+
     private final RowMapper<MonthlyRevenueDto> monthlyRevenueMapper = (rs, rowNum) -> new MonthlyRevenueDto(
             rs.getTimestamp("period")
                     .toLocalDateTime(), rs.getBigDecimal("total_revenue"), rs.getLong("total_orders"),
@@ -77,14 +100,32 @@ public class OrderRepositoryImpl implements OrderRepository {
     public Optional<Order> findById(Long id) {
         String sql = "SELECT * FROM orders WHERE id = ? AND deleted_at IS NULL";
         List<Order> result = jdbcTemplate.query(sql, orderRowMapper, id);
-        return result.stream()
+
+        Optional<Order> order = result.stream()
                 .findFirst();
+        if (order.isPresent()) {
+            String itemsSql = "SELECT * FROM order_items WHERE order_id = ? AND deleted_at IS NULL";
+            List<OrderItem> items = jdbcTemplate.query(itemsSql, orderItemRowMapper, order.get()
+                    .getId());
+            order.get()
+                    .setItems(items);
+        }
+        return order;
     }
 
     @Override
     public List<Order> findByUserId(Long userId) {
         String sql = "SELECT * FROM orders WHERE user_id = ? AND deleted_at IS NULL";
-        return jdbcTemplate.query(sql, orderRowMapper, userId);
+        List<Order> orders = jdbcTemplate.query(sql, orderRowMapper, userId);
+
+        // Load items for each order
+        for (Order order : orders) {
+            String itemsSql = "SELECT * FROM order_items WHERE order_id = ? AND deleted_at IS NULL";
+            List<OrderItem> items = jdbcTemplate.query(itemsSql, orderItemRowMapper, order.getId());
+            order.setItems(items);
+        }
+
+        return orders;
     }
 
     @Override

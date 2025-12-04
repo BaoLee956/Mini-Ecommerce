@@ -5,11 +5,8 @@ import org.example.miniecommerce.entity.OrderItem;
 import org.example.miniecommerce.repository.OrderItemRepository;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -26,7 +23,7 @@ public class OrderItemRepositoryImpl implements OrderItemRepository {
         @Override
         public OrderItem mapRow(ResultSet rs, int rowNum) throws SQLException {
             OrderItem orderItem = new OrderItem();
-            orderItem.setId(rs.getLong("id"));
+            orderItem.setOrderId(rs.getLong("order_id"));
             orderItem.setProductId(rs.getLong("product_id"));
             orderItem.setQuantity(rs.getInt("quantity"));
             orderItem.setPrice(rs.getBigDecimal("unit_price"));
@@ -43,9 +40,9 @@ public class OrderItemRepositoryImpl implements OrderItemRepository {
     };
 
     @Override
-    public Optional<OrderItem> findById(Long id) {
-        String sql = "SELECT * FROM order_items WHERE id = ? AND deleted_at IS NULL";
-        List<OrderItem> result = jdbcTemplate.query(sql, orderItemRowMapper, id);
+    public Optional<OrderItem> findByOrderIdAndProductId(Long orderId, Long productId) {
+        String sql = "SELECT * FROM order_items WHERE order_id = ? AND product_id = ? AND deleted_at IS NULL";
+        List<OrderItem> result = jdbcTemplate.query(sql, orderItemRowMapper, orderId, productId);
         return result.stream().findFirst();
     }
 
@@ -65,35 +62,39 @@ public class OrderItemRepositoryImpl implements OrderItemRepository {
     public void save(OrderItem orderItem) {
         LocalDateTime now = LocalDateTime.now();
 
-        if (orderItem.getId() == null) {
-            String sql = "INSERT INTO order_items (order_id, product_id, quantity, unit_price, created_at) VALUES (?, ?, ?, ?, ?)";
-            KeyHolder keyHolder = new GeneratedKeyHolder();
+        // Check if order item already exists
+        Optional<OrderItem> existing = findByOrderIdAndProductId(orderItem.getOrderId(), orderItem.getProductId());
 
-            jdbcTemplate.update(connection -> {
-                PreparedStatement ps = connection.prepareStatement(sql, new String[] { "id" });
-                ps.setLong(1, orderItem.getOrder() != null ? orderItem.getOrder().getId() : null);
-                ps.setLong(2, orderItem.getProductId());
-                ps.setInt(3, orderItem.getQuantity());
-                ps.setBigDecimal(4, orderItem.getPrice());
-                ps.setObject(5, now);
-                return ps;
-            }, keyHolder);
-
-            Long generatedId = keyHolder.getKey().longValue();
-            orderItem.setId(generatedId);
+        if (existing.isEmpty()) {
+            // Insert new
+            String sql = "INSERT INTO order_items (order_id, product_id, quantity, unit_price, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)";
+            jdbcTemplate.update(sql,
+                orderItem.getOrderId(),
+                orderItem.getProductId(),
+                orderItem.getQuantity(),
+                orderItem.getPrice(),
+                now,
+                now);
             orderItem.setCreatedAt(now);
+            orderItem.setUpdatedAt(now);
         } else {
-            String sql = "UPDATE order_items SET product_id = ?, quantity = ?, unit_price = ?, updated_at = ? WHERE id = ?";
-            jdbcTemplate.update(sql, orderItem.getProductId(), orderItem.getQuantity(), orderItem.getPrice(), now, orderItem.getId());
+            // Update existing
+            String sql = "UPDATE order_items SET quantity = ?, unit_price = ?, updated_at = ? WHERE order_id = ? AND product_id = ?";
+            jdbcTemplate.update(sql,
+                orderItem.getQuantity(),
+                orderItem.getPrice(),
+                now,
+                orderItem.getOrderId(),
+                orderItem.getProductId());
             orderItem.setUpdatedAt(now);
         }
     }
 
     @Override
-    public void deleteById(Long id) {
+    public void deleteByOrderIdAndProductId(Long orderId, Long productId) {
         LocalDateTime now = LocalDateTime.now();
-        String sql = "UPDATE order_items SET deleted_at = ? WHERE id = ?";
-        jdbcTemplate.update(sql, now, id);
+        String sql = "UPDATE order_items SET deleted_at = ? WHERE order_id = ? AND product_id = ?";
+        jdbcTemplate.update(sql, now, orderId, productId);
     }
 }
 

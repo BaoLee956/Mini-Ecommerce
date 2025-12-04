@@ -2,7 +2,7 @@ package org.example.miniecommerce.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.miniecommerce.dto.order.*;
-import org.example.miniecommerce.service.OrderAnalyticsService;
+import org.example.miniecommerce.service.order.OrderAnalyticsService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

@@ -1,5 +1,6 @@
 package org.example.miniecommerce.service;
 
+import lombok.RequiredArgsConstructor;
 import org.example.miniecommerce.dto.auth.AuthResponse;
 import org.example.miniecommerce.dto.auth.LoginRequest;
 import org.example.miniecommerce.dto.user.CreateUserRequest;
@@ -12,27 +13,25 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import lombok.RequiredArgsConstructor;
-
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
-  private final UserRepository userRepository;
-  private final UserFactory userFactory;
-  private final UserRoleRepository userRoleRepository;
+    private final UserRepository userRepository;
+    private final UserFactory userFactory;
+    private final UserRoleRepository userRoleRepository;
 
-  //register
-  @Override
-  public AuthResponse register(CreateUserRequest request) {
+    //register
+    @Override
+    public AuthResponse register(CreateUserRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email already exists");
         }
 
         User user = userFactory.toUser(request);
         userRepository.save(user);
-        
+
         //  gán role cho user
-        userRoleRepository.assignRoleToUser(request.getEmail(), request.getRoleName());
+        userRoleRepository.assignRoleToUser(request.getEmail(), "CUSTOMER");
 
         UserResponse userResponse = userFactory.toUserResponse(user);
 
@@ -48,7 +47,8 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        if (!user.getPassword().equals(request.getPassword())) {
+        if (!user.getPassword()
+                .equals(request.getPassword())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid password");
         }
 
