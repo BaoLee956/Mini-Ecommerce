@@ -7,7 +7,7 @@ public class ShippingMapper {
     public static ShipmentResponse toResponse(Shipping s) {
         return new ShipmentResponse(
                 s.getId(),
-                s.getOrder() != null ? s.getOrder().getId() : null,
+                s.getOrderId(),
                 s.getCarrierName(),
                 s.getTrackingNumber(),
                 s.getDeliveryAddress(),

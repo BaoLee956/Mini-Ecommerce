@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.example.miniecommerce.dto.payment.ConfirmPaymentRequest;
 import org.example.miniecommerce.dto.payment.CreatePaymentRequest;
 import org.example.miniecommerce.entity.Order;
-import org.example.miniecommerce.entity.OrderStatus;
 import org.example.miniecommerce.entity.Payment;
 import org.example.miniecommerce.factory.PaymentFactory;
 import org.example.miniecommerce.repository.PaymentRepository;
@@ -66,7 +65,7 @@ public class PaymentServiceImpl implements PaymentService {
                 p.setPaidAt(LocalDateTime.now());
 
                 // Update order status separately
-                orderService.updateStatus(p.getOrderId(), OrderStatus.PENDING_SHIPMENT);
+                orderService.handlePaymentSuccess(p.getOrderId());
 
                 log.info("[confirm] Order status updated to PAID: orderId = {}", p.getOrderId());
             } else {

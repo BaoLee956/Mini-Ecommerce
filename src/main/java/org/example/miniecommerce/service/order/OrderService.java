@@ -1,7 +1,6 @@
 package org.example.miniecommerce.service.order;
 
 import org.example.miniecommerce.dto.order.*;
-import org.example.miniecommerce.entity.OrderStatus;
 import org.example.miniecommerce.service.order.decorator.OrderDecoratorName;
 
 import java.math.BigDecimal;
@@ -23,7 +22,13 @@ public interface OrderService {
     // PUT /api/orders/{id}/status
     OrderStatusResponse updateStatus(Long id, UpdateOrderStatusRequest request, Long userId);
 
-    void updateStatus(Long id, OrderStatus status);
+    // State pattern methods - thay thế cho updateStatus(Long id, OrderStatus status)
+    void handlePaymentSuccess(Long orderId);
+    void handleShipmentCreated(Long orderId);
+    void handleShipmentStarted(Long orderId);
+    void handleShipmentDelivered(Long orderId);
+    void handlePaymentFailed(Long orderId);
+    void handleCancel(Long orderId);
 
     // DELETE /api/orders/{id}
     DeleteResponse deleteOrder(Long id, Long userId);
