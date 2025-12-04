@@ -183,4 +183,24 @@ public class ProductRepository {
         return jdbc.queryForObject("SELECT COUNT(*) FROM products WHERE category_id = :categoryId AND deleted_at IS NULL",
                 Map.of("categoryId", categoryId), Long.class);
     }
+    public boolean existsByNameIgnoreCaseTrim(String name) {
+        String sql = """
+        SELECT COUNT(*) FROM products 
+        WHERE TRIM(LOWER(name)) = TRIM(LOWER(:name))
+          AND deleted_at IS NULL
+        """;
+        Integer count = jdbc.queryForObject(sql, Map.of("name", name), Integer.class);
+        return count != null && count > 0;
+    }
+
+    public boolean existsByNameIgnoreCaseTrimAndIdNot(String name, Long excludeId) {
+        String sql = """
+        SELECT COUNT(*) FROM products 
+        WHERE TRIM(LOWER(name)) = TRIM(LOWER(:name))
+          AND id != :id 
+          AND deleted_at IS NULL
+        """;
+        Integer count = jdbc.queryForObject(sql, Map.of("name", name, "id", excludeId), Integer.class);
+        return count != null && count > 0;
+    }
 }
