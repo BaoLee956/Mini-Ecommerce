@@ -14,7 +14,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,25 +52,33 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResponse create(CreateProductRequest req) {
         Category category = categoryRepository.findById(req.categoryId())
-                .orElseThrow(() -> new NoSuchElementException("Category not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy danh mục mà bạn muốn thêm sản phẩm"));
         Product product = ProductFactory.fromCreateRequest(req, category);
+        String name = product.getName();
+        if (productRepository.existsByNameIgnoreCaseTrim(name)) {
+            throw new IllegalArgumentException("Sản phẩm với tên '" + name + "' đã tồn tại!");
+        }
         return ProductFactory.toResponse(productRepository.insert(product));
     }
 
     @Override
     public ProductResponse get(Long id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Product not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy sản phẩm"));
         return ProductFactory.toResponse(product);
     }
 
     @Override
     public ProductResponse update(Long id, UpdateProductRequest req) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Product not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy sản phẩm"));
         Category category = categoryRepository.findById(req.categoryId())
-                .orElseThrow(() -> new NoSuchElementException("Category not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy danh mục"));
         ProductFactory.updateProduct(product, req, category);
+        String name = product.getName();
+        if (productRepository.existsByNameIgnoreCaseTrimAndIdNot(name,id)) {
+            throw new IllegalArgumentException("Sản phẩm với tên '" + name + "' đã tồn tại!");
+        }
         return ProductFactory.toResponse(productRepository.update(product));
     }
 
@@ -77,7 +87,7 @@ public class ProductServiceImpl implements ProductService {
         List<ProductResponse> products = new ArrayList<>();
         ids.forEach(id -> {
             Product product = productRepository.findById(id)
-                    .orElseThrow(() -> new NoSuchElementException("Product not found"));
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy sản phẩm"));
             products.add(ProductFactory.toResponse(product));
         });
         return products;
@@ -86,7 +96,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void delete(Long id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Product not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy sản phẩm"));
         productRepository.delete(product.getId());
     }
 }
