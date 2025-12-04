@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Ecommerce - Đặt hàng</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="login-screen" class="container-fluid vh-100 d-none">
+        <div class="row h-100 align-items-center justify-content-center">
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white text-center">
+                        <h4><i class="fas fa-sign-in-alt"></i> Đăng nhập</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="login-form">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Tên đăng nhập</label>
+                                <input type="text" class="form-control" id="username" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Mật khẩu</label>
+                                <input type="password" class="form-control" id="password" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100" id="login-btn">
+                                <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                            </button>
+                        </form>
+
+                        <hr class="my-3">
+                        <div class="text-center">
+                            <small class="text-muted">Demo: admin / admin123</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application Screen -->
+    <div id="main-screen" class="container-fluid vh-100 d-none">
+        <!-- Navigation -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">
+                    <i class="fas fa-shopping-bag"></i> Mini Ecommerce
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#" onclick="showScreen('products')">
+                                <i class="fas fa-box"></i> Sản phẩm
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showScreen('orders')">
+                                <i class="fas fa-list"></i> Đơn hàng của tôi
+                            </a>
+                        </li>
+                    </ul>
+
+                    <ul class="navbar-nav">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user"></i> <span id="user-name">User</span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#" onclick="logout()">
+                                    <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                                </a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Content Area -->
+        <div class="container-fluid" style="height: calc(100vh - 76px);">
+            <!-- Products Screen -->
+            <div id="products-screen" class="row h-100">
+                <!-- Cart Section (20%) -->
+                <div class="col-3 bg-light border-end p-3" id="cart-section">
+                    <h4 class="mb-3">
+                        <i class="fas fa-shopping-cart"></i> Giỏ hàng
+                    </h4>
+                    <div id="cart-items" class="mb-3">
+                        <!-- Cart items will be added here -->
+                    </div>
+                    <div class="mt-auto">
+                        <button id="order-btn" class="btn btn-success w-100" disabled>
+                            <i class="fas fa-check"></i> Đặt hàng
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Products Section (80%) -->
+                <div class="col-9 p-3" id="products-section">
+                    <h4 class="mb-3">
+                        <i class="fas fa-box"></i> Sản phẩm
+                    </h4>
+
+                    <!-- Search Section -->
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <input type="text" id="search-input" class="form-control" placeholder="Tìm kiếm sản phẩm...">
+                                <button id="search-btn" class="btn btn-primary">
+                                    <i class="fas fa-search"></i> Tìm kiếm
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div id="pagination-info" class="text-muted mt-2">
+                                <!-- Pagination info will be shown here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pagination Controls -->
+                    <div class="d-flex justify-content-center mb-3" id="pagination-controls">
+                        <!-- Pagination buttons will be added here -->
+                    </div>
+
+                    <!-- Products Grid -->
+                    <div id="products-grid" class="row">
+                        <!-- Products will be loaded here -->
+                    </div>
+
+                    <!-- Loading Spinner -->
+                    <div id="loading-spinner" class="text-center d-none">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Screen -->
+            <div id="orders-screen" class="row h-100 d-none">
+                <div class="col-12 p-4">
+                    <h4 class="mb-3">
+                        <i class="fas fa-list"></i> Đơn hàng của tôi
+                    </h4>
+
+                    <div id="orders-container">
+                        <!-- Orders will be loaded here -->
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Đang tải đơn hàng...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="api.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -99,4 +99,9 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy sản phẩm"));
         productRepository.delete(product.getId());
     }
+    
+    @Override
+    public void updateStockQuantity(Long productId, Integer newStockQuantity) {
+        productRepository.updateStockQuantity(productId, newStockQuantity);
+    }
 }
